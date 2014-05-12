@@ -7,8 +7,8 @@
 //Gambar garis
 void drawLineBresenham (float x, float y, float x2, float y2, int color) {
 	//biar titik 0,0 nya di tengah window bet
-	int centerAxis = getmaxx()/2;
-	int centerOrdinat = getmaxy()/2;
+	int centerAxis = 0;
+	int centerOrdinat = 0;
 
 	int w = x2 - x ;
     int h = y2 - y ;
@@ -27,7 +27,7 @@ void drawLineBresenham (float x, float y, float x2, float y2, int color) {
     int numerator = longest >> 1 ;
 	int i;
     for (i=0;i<=longest;i++) {
-        putpixel(x+centerAxis,centerOrdinat-y,color) ;
+        putpixel(x,y,color) ;
         numerator += shortest ;
         if (!(numerator<longest)) {
             numerator -= longest ;
