@@ -72,12 +72,13 @@ void render() {
 	//drawMenuBar();
 	if (ismouseclick(WM_LBUTTONDOWN)) {
 		getmouseclick(WM_LBUTTONDOWN, xc, yc);
-		if (yc < MaxY/6)
+		if (yc < MaxY/6){
 			setmenu(xc);
+			drawMenuBar();
+		}
 		else {
 			drawmenu(xc,yc);
 		}
-		drawMenuBar();
 	}
 	
 	// LINE
