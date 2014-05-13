@@ -18,8 +18,24 @@
 // work, they should set a variable that will trigger the work going,
 // and then return.
 bool isClicked = false;
-void click_handler(int x, int y){ isClicked = true; }
-void release_handler(int x, int y){ isClicked = false; }
+bool isDrawing = false;
+bool isReleased = false;
+bool isDragged = false;
+int clickedx,clickedy,releasedx,releasedy;
+void click_handler(int x, int y){ 
+	isClicked = true;
+	isDrawing = !isDrawing;
+	clickedx = x;
+	clickedy = y;
+}
+void rightclick_handler(int x, int y){ 
+	floodFill(x, y, 2, 0);
+}
+void release_handler(int x, int y){ 
+	isClicked = false; 
+	releasedx = x;
+	releasedy = y;
+}
 
 void Pause(void)
 {
@@ -35,6 +51,17 @@ void Pause(void)
 	cleardevice();                        /* Clear the screen             */
 }
 
+void drawing_circle(int sx, int sy, int cx, int cy, int rad){
+	int fx = mousex();
+	int fy = mousey();
+	int r = (fx-sx)/2;
+	rad = r;
+	cx = sx+r;
+	cy = sy+r;
+	draw_circle(cx,cy,r,2);
+
+}
+
 int main()
 {
     int maxx, maxy;  // Maximum x and y pixel coordinates
@@ -42,21 +69,38 @@ int main()
     initwindow(700, 500);         
     maxx = getmaxx();
     maxy = getmaxy();
-	int mx,my;
+	int mx,my,cx,cy,rad;
     // Register the function that handles a left mouse click
     registermousehandler(WM_LBUTTONDOWN, click_handler);
+	registermousehandler(WM_RBUTTONDOWN, rightclick_handler);
     registermousehandler(WM_LBUTTONUP, release_handler);
     // Draw a white circle with red inside and a radius of 50 pixels:
-    draw_circle(320,220,20,RED);
+    draw_circle(670,30,20,RED);
     //bool isClose = false;
     while (1){
 		if(ismouseclick(WM_LBUTTONDOWN)){
 			getmouseclick(WM_LBUTTONDOWN,mx,my);
 			if(getpixel(mx,my) == RED) break;
 		}
+		delay(10);
+		if(isDrawing){
+			cleardevice();
+			drawing_circle(clickedx,clickedy,cx,cy,rad);
+		}
+		if(isClicked && getpixel(clickedx,clickedy)!=0){
+			isDragged = true;
+			//printf("dragged!\n");
+		}else{
+			isDragged = false;
+			//printf("not dragged!\n");
+		}
+		if(isDragged){
+			//cleardevice();
+			//draw_circle(mousex(),mousey(),rad,2);
+		}
 	} 
 	//printf("%d,%d\n",mousex(),mousey());
     // Switch back to text mode:
-    closegraph( );
+    closegraph();
 	return 0;
 }
