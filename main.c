@@ -24,7 +24,7 @@
 	#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
 #endif
 
-int    MaxX, MaxY;              /* The maximum resolution of the screen */
+int MaxX, MaxY;              /* The maximum resolution of the screen */
 int xc, yc;
 int selectedmenu;
 int nL=0;
