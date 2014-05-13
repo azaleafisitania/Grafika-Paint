@@ -4,19 +4,56 @@
 #include "areafill.c"
 
 #define MBCOLOR LIGHTBLUE
-#define HLCOLOR CYAN
-#define BGCOLOR BLACK
-#define NBAR 7
+#define HLCOLOR LIGHTCYAN
+#define BGCOLOR WHITE
+#define FONTCOLOR BLACK
+#define LINECOLOR BLUE
+#define FILLCOLOR GREEN
+#define NBAR 8
 #define FPS 30
+#define MLINE 1
+#define MCIRCLE 2
+#define MAREA 3
+#define NLINE 100
+
+#ifndef max
+	#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
+#endif
+
+#ifndef min
+	#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
+#endif
 
 int    MaxX, MaxY;              /* The maximum resolution of the screen */
 int xc, yc;
 int selectedmenu;
+int nL=0;
 
 // for line
 int isClicked = 0;
-int xa=-1,ya=-1,xb=-1,yb=-1;
+int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE];
 
+void clear() {
+	int i,j;
+	for (j=0 ; j<MaxY ; j++) {
+		for (i=0 ; i<MaxX ; i++) {
+			if(getpixel(i,j)!=BGCOLOR){
+				putpixel(i,j,BGCOLOR);
+			}
+		}
+	}
+}
+
+void clearscreen(int x1, int y1, int x2, int y2) {
+	int i,j;
+	for (j=min(y1,y2) ; j<max(y1,y2) ; j++) {
+		for (i=min(x1,x2) ; i<max(x1,x2) ; i++) {
+			if(getpixel(i,j)!=BGCOLOR){
+				putpixel(i,j,BGCOLOR);
+			}
+		}
+	}
+}
 
 void clearscreen() {
 	int i,j;
@@ -29,6 +66,16 @@ void clearscreen() {
 	}
 }
 
+void initLine() {
+	int i;
+	for (i=0 ; i< NLINE ; i++) {
+		xa[i] = -1;
+		ya[i] = -1;
+		xb[i] = -1;
+		yb[i] = -1;
+	}
+}
+
 void drawMenuBar() {
 	drawLineBresenham(0,MaxY/6, MaxX, MaxY/6, MBCOLOR);
 	
@@ -36,15 +83,24 @@ void drawMenuBar() {
 	for (i=1 ; i<NBAR ; i++) {
 		drawLineBresenham(MaxX/NBAR*i,0 , MaxX/NBAR*i,MaxY/6, MBCOLOR);
 	}
-	outtextxy(MaxX/NBAR*0+30,MaxY/12-8,"LINE");
-	outtextxy(MaxX/NBAR*1+22,MaxY/12-8,"CIRCLE");
-	outtextxy(MaxX/NBAR*2+14,MaxY/12-8,"AREAFILL");
+	setcolor(FONTCOLOR);
+	outtextxy(MaxX/NBAR*0+15,MaxY/12-8,"SELECT");
+	outtextxy(MaxX/NBAR*MLINE+27,MaxY/12-8,"LINE");
+	outtextxy(MaxX/NBAR*MCIRCLE+15,MaxY/12-8,"CIRCLE");
+	outtextxy(MaxX/NBAR*MAREA+9,MaxY/12-8,"AREAFILL");
 	
+	
+}
+
+void colorMenuBar() {
+	int i;
 	if (selectedmenu != -1) {
 		for (i=0 ; i<NBAR ; i++) {
-			floodFill(i*MaxX/NBAR+2,2, BGCOLOR, HLCOLOR);
+			if (getpixel(i*MaxX/NBAR+2,2) == HLCOLOR && i != selectedmenu)
+				floodFill(i*MaxX/NBAR+2,2, BGCOLOR, HLCOLOR);
 		}
-		floodFill(selectedmenu*MaxX/NBAR+2,2, HLCOLOR, BGCOLOR);
+		if (getpixel(selectedmenu*MaxX/NBAR+2,2) != HLCOLOR)
+			floodFill(selectedmenu*MaxX/NBAR+2,2, HLCOLOR, BGCOLOR);
 	}
 }
 
@@ -55,26 +111,29 @@ void setmenu(int x) {
 void drawmenu(int x, int y) {
 	//clearscreen();
 	switch(selectedmenu) {
-	case 0 :	// Menu Line
+	case MLINE :	// Menu Line
 		if (isClicked==0) {
-			xa=x; ya=y;
+			nL++;
+			xa[nL-1]=x; ya[nL-1]=y;
 			isClicked = 1;
 		} else {
-			xb=x; yb=y;
+			xb[nL-1]=x; yb[nL-1]=y;
 			isClicked = 0;
 		}
+		break;
+	case MAREA : // Menu AreaFill
+		int tempc = getpixel(x,y);
+		floodFill(x,y,FILLCOLOR,tempc);
 		break;
 	}
 }
 
 void render() {
-	//clearscreen();
-	//drawMenuBar();
+	colorMenuBar();
 	if (ismouseclick(WM_LBUTTONDOWN)) {
 		getmouseclick(WM_LBUTTONDOWN, xc, yc);
-		if (yc < MaxY/6){
+		if (yc < MaxY/6) {
 			setmenu(xc);
-			drawMenuBar();
 		}
 		else {
 			drawmenu(xc,yc);
@@ -82,33 +141,68 @@ void render() {
 	}
 	
 	// LINE
-	
-	if (xa != -1) {
-		if (xb == -1) {
-			drawLineBresenham(xa,ya, mousex(), mousey(),1);
-		}
-		else {
-			drawLineBresenham(xa,ya, xb, yb,1);
+	// if (isClicked == 1) {
+		// int i,xmin=MaxX,ymin=MaxY,xmax=0,ymax=0;
+		// for (i=0 ; i<nL ; i++) {
+			// if (xb[i] == -1) {
+				// xmin = min(xmin,xa[i]);
+				// ymin = min(ymin,ya[i]);
+			// }
+			// else {
+				// xmin = min(min(xmin,xa[i]),xb[i]);
+				// ymin = min(min(ymin,ya[i]),yb[i]);
+			// }
+			// xmax = max(max(xmax,xa[i]),xb[i]);
+			// ymax = max(max(ymax,ya[i]),yb[i]);
+			// if (isClicked == 1 && i == nL-1) {
+				// xmax = mousex();
+				// ymax = mousey();
+			// }
+		// }
+		// clearscreen(xmin,ymin,xmax,ymax);
+		// for (i=0; i<nL ; i++) {
+			// //printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
+			// if (xb[i] == -1) {
+				// //printf("TEST LINE");
+				// drawLineBresenham(xa[i],ya[i], mousex(), mousey(),LINECOLOR);
+			// }
+			// else {
+				// drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
+			// }
+		// }
+	// }
+	int i;
+	for (i=0; i<nL ; i++) {
+		if (xb[i] != -1) {
+			drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
 		}
 	}
+	
 }
 
 int main() {
 	initwindow(640,480);
+	initLine();
+	setbkcolor(BGCOLOR);
 	selectedmenu = 0;
 	MaxX = getmaxx();
 	MaxY = getmaxy();
+	setactivepage(1);
+	clear();
+	drawMenuBar();
+	setactivepage(2);
+	clear();
 	drawMenuBar();
 	while (1) {
 		//delay(1000/FPS);
 		//render();
 		
-		//setactivepage(1);
+		setactivepage(1);
 		render();
-		//setvisualpage(1);
-		//setactivepage(2);
-		//render();
-		//setvisualpage(2);
+		setvisualpage(1);
+		setactivepage(2);
+		render();
+		setvisualpage(2);
 	}
 	
 	closegraph();
