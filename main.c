@@ -9,7 +9,7 @@
 #define NBAR 7
 #define FPS 30
 
-int    MaxX, MaxY;              /* The maximum resolution of the screen */
+int MaxX, MaxY;              /* The maximum resolution of the screen */
 int xc, yc;
 int selectedmenu;
 
@@ -97,7 +97,7 @@ int main() {
 	selectedmenu = 0;
 	MaxX = getmaxx();
 	MaxY = getmaxy();
-	//drawMenuBar();
+	drawMenuBar();
 	while (1) {
 		//delay(1000/FPS);
 		//render();
