@@ -1,6 +1,7 @@
 // FILE: drawellipse.c
 #include "winbgim.h"  // Provides the BGI graphics functions for Windows
 #include <stdio.h>
+#include <stdlib.h>
 #include "Areafill.c"
 #include "circle.c"
 #include "ELLIPSE.c"
@@ -9,7 +10,9 @@ bool isClicked = false;
 bool isDrawing = false;
 bool isReleased = false;
 bool isDragged = false;
+int stateDraw = 0;
 int clickedx,clickedy,releasedx,releasedy;
+int mx,my,cx,cy,radx,rady;
 
 void click_handler(int x, int y){ 
 	isClicked = true;
@@ -55,18 +58,35 @@ void drawing_ellipse(int sx, int sy, int cx, int cy, int radx, int rady, int col
 	int fy = mousey();
 	int rx = (fx-sx)/2;
 	int ry = (fy-sy)/2;
-	radx = rx;
-	rady = ry;
-	cx = sx+radx;
-	cy = sy+rady;
+	radx = abs(rx);
+	rady = abs(ry);
+	cx = sx+rx;
+	cy = sy+ry;
 	ellipseMidpoint(cx,cy,radx,rady,color);
 }
 
+void update(){
+	if(isClicked && getpixel(clickedx,clickedy)==RED) stateDraw = 1;
+	switch(stateDraw){
+		case 0:	draw_circle(670,30,20,RED); break;
+		case 1:	if(isClicked && getpixel(clickedx,clickedy)!=RED) stateDraw = 2; break;
+		case 2: if(!isClicked) stateDraw = 3; break;
+		case 3:{
+			if(isClicked){ stateDraw = 0; }
+			else{
+				cleardevice();
+				drawing_ellipse(clickedx,clickedy,cx,cy,radx,rady,2);
+			}
+			break;
+		}
+		case 4:{
+			
+		}
+	}
+}
 int main()
 {
     int maxx, maxy;  // Maximum x and y pixel coordinates
-	int mx,my,cx,cy,radx,rady;
-	int stateDraw = 0;
     // Put the machine into graphics mode and get the maximum coordinates:
     initwindow(700, 500);         
     maxx = getmaxx();
@@ -78,27 +98,7 @@ int main()
     //main thread
     while (1){
 		delay(50);
-		if(isClicked && getpixel(clickedx,clickedy)==RED) stateDraw = 1;
-		switch(stateDraw){
-			case 0:{
-				draw_circle(670,30,20,RED);
-				break;
-			}
-			case 1:{
-				if(!isClicked) stateDraw = 2;
-				break;
-			}
-			case 2:{
-				if(isClicked) stateDraw = 3;
-				break;
-			}
-			case 3:{
-				cleardevice();
-				drawing_ellipse(clickedx,clickedy,cx,cy,radx,rady,2);
-				if(!isClicked) stateDraw = 0;
-				break;
-			}
-		}
+		update();
 		/*if(isClicked && getpixel(clickedx,clickedy)!=0){
 			isDragged = true;
 			//printf("dragged!\n");
