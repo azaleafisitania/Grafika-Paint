@@ -68,8 +68,8 @@ void drawmenu(int x, int y) {
 }
 
 void render() {
-	clearscreen();
-	drawMenuBar();
+	//clearscreen();
+	//drawMenuBar();
 	if (ismouseclick(WM_LBUTTONDOWN)) {
 		getmouseclick(WM_LBUTTONDOWN, xc, yc);
 		if (yc < MaxY/6)
@@ -102,12 +102,12 @@ int main() {
 		//delay(1000/FPS);
 		//render();
 		
-		setactivepage(1);
+		//setactivepage(1);
 		render();
-		setvisualpage(1);
-		setactivepage(2);
-		render();
-		setvisualpage(2);
+		//setvisualpage(1);
+		//setactivepage(2);
+		//render();
+		//setvisualpage(2);
 	}
 	
 	closegraph();
