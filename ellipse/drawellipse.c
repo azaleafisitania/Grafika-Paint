@@ -28,18 +28,10 @@ void release_handler(int x, int y){
 	releasedy = y;
 }
 
-void Pause(void)
-{
-	int c;
-	c = getch();        /* Read a character from kbd    */
-	if( 27 == c ){      /* Does user wish to leave?     */
-		closegraph();   /* Change to text mode          */
-		exit( 1 );      /* Return to OS                 */
-	}
-	if( 0 == c ){      /* Did use hit a non-ASCII key? */
-		c = getch();   /* Read scan code for keyboard  */
-	}
-	cleardevice();     /* Clear the screen             */
+int keyhandler(){
+	int c = kbhit();
+	if(c!=0) c = getch();
+	return c;
 }
 
 void drawing_circle(int sx, int sy, int cx, int cy, int rad){
@@ -68,15 +60,12 @@ void drawing_ellipse(int sx, int sy, int cx, int cy, int radx, int rady, int col
 void update(){
 	if(isClicked && getpixel(clickedx,clickedy)==RED) stateDraw = 1;
 	switch(stateDraw){
-		case 0:	draw_circle(670,30,20,RED); break;
+		case 0:	draw_circle(20,20,10,RED); outtextxy(40,12,"Klik tombol di kiri untuk mulai menggambar ellipse"); break;
 		case 1:	if(isClicked && getpixel(clickedx,clickedy)!=RED) stateDraw = 2; break;
 		case 2: if(!isClicked) stateDraw = 3; break;
 		case 3:{
 			if(isClicked){ stateDraw = 0; }
-			else{
-				cleardevice();
-				drawing_ellipse(clickedx,clickedy,cx,cy,radx,rady,2);
-			}
+			else{ cleardevice(); drawing_ellipse(clickedx,clickedy,cx,cy,radx,rady,2); }
 			break;
 		}
 		case 4:{
@@ -84,8 +73,7 @@ void update(){
 		}
 	}
 }
-int main()
-{
+int main(){
     int maxx, maxy;  // Maximum x and y pixel coordinates
     // Put the machine into graphics mode and get the maximum coordinates:
     initwindow(700, 500);         
@@ -99,6 +87,7 @@ int main()
     while (1){
 		delay(50);
 		update();
+		if(keyhandler()==27) break;
 		/*if(isClicked && getpixel(clickedx,clickedy)!=0){
 			isDragged = true;
 			//printf("dragged!\n");
