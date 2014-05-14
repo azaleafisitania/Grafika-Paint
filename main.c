@@ -24,10 +24,11 @@
 	#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
 #endif
 
-int MaxX, MaxY;              /* The maximum resolution of the screen */
+int    MaxX, MaxY;              /* The maximum resolution of the screen */
 int xc, yc;
 int selectedmenu;
 int nL=0;
+int mx[3],my[3];
 
 // for line
 int isClicked = 0;
@@ -140,9 +141,9 @@ void render() {
 		}
 	}
 	
-	// LINE
-	// if (isClicked == 1) {
-		// int i,xmin=MaxX,ymin=MaxY,xmax=0,ymax=0;
+	//LINE
+	if (isClicked == 1) {
+		int i,xmin=MaxX,ymin=MaxY,xmax=0,ymax=0;
 		// for (i=0 ; i<nL ; i++) {
 			// if (xb[i] == -1) {
 				// xmin = min(xmin,xa[i]);
@@ -155,28 +156,40 @@ void render() {
 			// xmax = max(max(xmax,xa[i]),xb[i]);
 			// ymax = max(max(ymax,ya[i]),yb[i]);
 			// if (isClicked == 1 && i == nL-1) {
-				// xmax = mousex();
-				// ymax = mousey();
+				// xmax = mx;
+				// ymax = my;
 			// }
 		// }
 		// clearscreen(xmin,ymin,xmax,ymax);
-		// for (i=0; i<nL ; i++) {
-			// //printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
-			// if (xb[i] == -1) {
-				// //printf("TEST LINE");
-				// drawLineBresenham(xa[i],ya[i], mousex(), mousey(),LINECOLOR);
-			// }
-			// else {
-				// drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
-			// }
-		// }
-	// }
-	int i;
-	for (i=0; i<nL ; i++) {
-		if (xb[i] != -1) {
-			drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
+		
+		for (i=0; i<nL ; i++) {
+			//printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
+			if (xb[i] == -1) {
+				drawLineBresenham(xa[i],ya[i], mx[getactivepage()], my[getactivepage()],BGCOLOR);
+			}
+			else {
+				drawLineBresenham(xa[i],ya[i], xb[i], yb[i],BGCOLOR);
+			}
+		}
+		
+		mx[getactivepage()] = mousex(); my[getactivepage()] = mousey();
+		
+		for (i=0; i<nL ; i++) {
+			//printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
+			if (xb[i] == -1) {
+				drawLineBresenham(xa[i],ya[i], mx[getactivepage()], my[getactivepage()],LINECOLOR);
+			}
+			else {
+				drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
+			}
 		}
 	}
+	// int i;
+	// for (i=0; i<nL ; i++) {
+		// if (xb[i] != -1) {
+			// drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
+		// }
+	// }
 	
 }
 
@@ -190,19 +203,23 @@ int main() {
 	setactivepage(1);
 	clear();
 	drawMenuBar();
+	mx[getactivepage()] = 0;
+	my[getactivepage()] = MaxY/6+1;
 	setactivepage(2);
 	clear();
 	drawMenuBar();
+	mx[getactivepage()] = 0;
+	my[getactivepage()] = MaxY/6+1;
 	while (1) {
 		//delay(1000/FPS);
-		//render();
-		
+		//render()
 		setactivepage(1);
 		render();
 		setvisualpage(1);
 		setactivepage(2);
 		render();
 		setvisualpage(2);
+		
 	}
 	
 	closegraph();
