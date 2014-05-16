@@ -10,11 +10,14 @@
 #define LINECOLOR BLUE
 #define FILLCOLOR GREEN
 #define NBAR 8
-#define FPS 30
+#define NLINE 100
 #define MLINE 1
 #define MCIRCLE 2
 #define MAREA 3
-#define NLINE 100
+#define MPOLYGON 4
+#define MCURVE 5
+#define MCLIP 6
+#define MANTI 7
 
 #ifndef max
 	#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
@@ -89,6 +92,10 @@ void drawMenuBar() {
 	outtextxy(MaxX/NBAR*MLINE+27,MaxY/12-8,"LINE");
 	outtextxy(MaxX/NBAR*MCIRCLE+15,MaxY/12-8,"CIRCLE");
 	outtextxy(MaxX/NBAR*MAREA+9,MaxY/12-8,"AREAFILL");
+	outtextxy(MaxX/NBAR*MPOLYGON+7,MaxY/12-8,"POLYGON");
+	outtextxy(MaxX/NBAR*MCURVE+17,MaxY/12-8,"CURVE");
+	outtextxy(MaxX/NBAR*MCLIP+8,MaxY/12-8,"CLIPPING");
+	outtextxy(MaxX/NBAR*MANTI+11,MaxY/12-8,"ANTICLIP");
 	
 	
 }
@@ -124,7 +131,12 @@ void drawmenu(int x, int y) {
 		break;
 	case MAREA : // Menu AreaFill
 		int tempc = getpixel(x,y);
+		int temp = getactivepage();
+		setactivepage(1);
 		floodFill(x,y,FILLCOLOR,tempc);
+		setactivepage(2);
+		floodFill(x,y,FILLCOLOR,tempc);
+		setactivepage(temp);
 		break;
 	}
 }
@@ -142,7 +154,7 @@ void render() {
 	}
 	
 	//LINE
-	if (isClicked == 1) {
+	if (isClicked == 1 && selectedmenu == MLINE) {
 		int i,xmin=MaxX,ymin=MaxY,xmax=0,ymax=0;
 		// for (i=0 ; i<nL ; i++) {
 			// if (xb[i] == -1) {
@@ -165,7 +177,10 @@ void render() {
 		for (i=0; i<nL ; i++) {
 			//printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
 			if (xb[i] == -1) {
-				drawLineBresenham(xa[i],ya[i], mx[getactivepage()], my[getactivepage()],BGCOLOR);
+				if (my[getactivepage()] > MaxY/6 +1)
+					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], my[getactivepage()],BGCOLOR);
+				else 
+					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], MaxY/6 +1,BGCOLOR);
 			}
 			else {
 				drawLineBresenham(xa[i],ya[i], xb[i], yb[i],BGCOLOR);
@@ -177,7 +192,10 @@ void render() {
 		for (i=0; i<nL ; i++) {
 			//printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
 			if (xb[i] == -1) {
-				drawLineBresenham(xa[i],ya[i], mx[getactivepage()], my[getactivepage()],LINECOLOR);
+				if (my[getactivepage()] > MaxY/6 +1)
+					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], my[getactivepage()],LINECOLOR);
+				else 
+					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], MaxY/6 +1,LINECOLOR);
 			}
 			else {
 				drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
