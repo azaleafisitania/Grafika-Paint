@@ -8,6 +8,7 @@
 #define BGCOLOR WHITE
 #define FONTCOLOR BLACK
 #define LINECOLOR BLUE
+#define LINECURVE MAGENTA
 #define FILLCOLOR GREEN
 #define NBAR 8
 #define NLINE 100
@@ -27,15 +28,16 @@
 	#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
 #endif
 
-int    MaxX, MaxY;              /* The maximum resolution of the screen */
+int MaxX, MaxY;		/* The maximum resolution of the screen */
 int xc, yc;
 int selectedmenu;
-int nL=0;
+int nL=0; nC=0; 	// jumlah entitas yang dibuat user
 int mx[3],my[3];
 
 // for line
 int isClicked = 0;
 int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE];
+
 
 void clear() {
 	int i,j;
@@ -95,9 +97,7 @@ void drawMenuBar() {
 	outtextxy(MaxX/NBAR*MPOLYGON+7,MaxY/12-8,"POLYGON");
 	outtextxy(MaxX/NBAR*MCURVE+17,MaxY/12-8,"CURVE");
 	outtextxy(MaxX/NBAR*MCLIP+8,MaxY/12-8,"CLIPPING");
-	outtextxy(MaxX/NBAR*MANTI+11,MaxY/12-8,"ANTICLIP");
-	
-	
+	outtextxy(MaxX/NBAR*MANTI+11,MaxY/12-8,"ANTICLIP");s	
 }
 
 void colorMenuBar() {
@@ -137,6 +137,16 @@ void drawmenu(int x, int y) {
 		setactivepage(2);
 		floodFill(x,y,FILLCOLOR,tempc);
 		setactivepage(temp);
+		break;
+	case MCURVE : // Menu Curve
+		if (isClicked==0) {
+			nC++;
+			xa[nC-1]=x; ya[nC-1]=y;
+			isClicked = 1;
+		} else {
+			xb[nC-1]=x; yb[nC-1]=y;
+			isClicked = 0;
+		}
 		break;
 	}
 }
@@ -212,6 +222,7 @@ void render() {
 }
 
 int main() {
+	//initializing
 	initwindow(640,480);
 	initLine();
 	setbkcolor(BGCOLOR);
@@ -228,6 +239,7 @@ int main() {
 	drawMenuBar();
 	mx[getactivepage()] = 0;
 	my[getactivepage()] = MaxY/6+1;
+
 	while (1) {
 		//delay(1000/FPS);
 		//render()
