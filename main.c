@@ -3,6 +3,7 @@
 #include "line-bresenham.c"
 #include "areafill.c"
 
+//color
 #define MBCOLOR LIGHTBLUE
 #define HLCOLOR LIGHTCYAN
 #define BGCOLOR WHITE
@@ -10,8 +11,11 @@
 #define LINECOLOR BLUE
 #define LINECURVE MAGENTA
 #define FILLCOLOR GREEN
+//jumlah Maksimum Objek Gambar
 #define NBAR 8
 #define NLINE 100
+#define NCURVE 10
+//menu
 #define MLINE 1
 #define MCIRCLE 2
 #define MAREA 3
@@ -19,7 +23,7 @@
 #define MCURVE 5
 #define MCLIP 6
 #define MANTI 7
-
+//basic functions
 #ifndef max
 	#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
 #endif
@@ -28,17 +32,24 @@
 	#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
 #endif
 
+// VARIABLES
 int MaxX, MaxY;		/* The maximum resolution of the screen */
 int xc, yc;
 int selectedmenu;
-int nL=0; nC=0; 	// jumlah entitas yang dibuat user
+int nL=0, nC=0; 	// jumlah entitas line, curve, .. yang dibuat user
 int mx[3],my[3];
 
 // for line
 int isClicked = 0;
 int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE];
+// and for curve
+int x_ca[NLINE],y_ca[NLINE],x_cb[NLINE],y_cb[NLINE];
 
+//temp
+int tempc;
+int temp;
 
+// METHODS
 void clear() {
 	int i,j;
 	for (j=0 ; j<MaxY ; j++) {
@@ -97,7 +108,7 @@ void drawMenuBar() {
 	outtextxy(MaxX/NBAR*MPOLYGON+7,MaxY/12-8,"POLYGON");
 	outtextxy(MaxX/NBAR*MCURVE+17,MaxY/12-8,"CURVE");
 	outtextxy(MaxX/NBAR*MCLIP+8,MaxY/12-8,"CLIPPING");
-	outtextxy(MaxX/NBAR*MANTI+11,MaxY/12-8,"ANTICLIP");s	
+	outtextxy(MaxX/NBAR*MANTI+11,MaxY/12-8,"ANTICLIP");	
 }
 
 void colorMenuBar() {
@@ -130,8 +141,8 @@ void drawmenu(int x, int y) {
 		}
 		break;
 	case MAREA : // Menu AreaFill
-		int tempc = getpixel(x,y);
-		int temp = getactivepage();
+		tempc = getpixel(x,y);
+		temp = getactivepage();
 		setactivepage(1);
 		floodFill(x,y,FILLCOLOR,tempc);
 		setactivepage(2);
@@ -142,7 +153,7 @@ void drawmenu(int x, int y) {
 		if (isClicked==0) {
 			nC++;
 			xa[nC-1]=x; ya[nC-1]=y;
-			isClicked = 1;
+			isClicked = 1; 
 		} else {
 			xb[nC-1]=x; yb[nC-1]=y;
 			isClicked = 0;
