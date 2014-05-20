@@ -35,7 +35,7 @@ int PCOLOR = 0;
 
 // for line
 int isClicked = 0;
-int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE];
+int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE], cl[NLINE];
 
 void clear() {
 	int i,j;
@@ -160,6 +160,7 @@ void drawmenu(int x, int y) {
 		if (isClicked==0) {
 			nL++;
 			xa[nL-1]=x; ya[nL-1]=y;
+			cl[nL-1] = PCOLOR;
 			isClicked = 1;
 		} else {
 			xb[nL-1]=x; yb[nL-1]=y;
@@ -248,12 +249,12 @@ void render() {
 			//printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
 			if (xb[i] == -1) {
 				if (my[getactivepage()] > MaxY/6 +1)
-					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], my[getactivepage()],PCOLOR);
+					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], my[getactivepage()],cl[i]);
 				else 
-					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], MaxY/6 +1,PCOLOR);
+					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], MaxY/6 +1,cl[i]);
 			}
 			else {
-				drawLineBresenham(xa[i],ya[i], xb[i], yb[i],PCOLOR);
+				drawLineBresenham(xa[i],ya[i], xb[i], yb[i],cl[i]);
 			}
 		}
 	}
