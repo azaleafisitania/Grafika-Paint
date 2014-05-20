@@ -19,9 +19,11 @@ void click_handler(int x, int y){
 	clickedx = x;
 	clickedy = y;
 }
+
 void rightclick_handler(int x, int y){ 
 	floodFill(x, y, 2, 0);
 }
+
 void release_handler(int x, int y){ 
 	isClicked = false; 
 	releasedx = x;
@@ -73,6 +75,7 @@ void update(){
 		}
 	}
 }
+
 int main(){
     int maxx, maxy;  // Maximum x and y pixel coordinates
     // Put the machine into graphics mode and get the maximum coordinates:
@@ -88,18 +91,6 @@ int main(){
 		delay(50);
 		update();
 		if(keyhandler()==27) break;
-		/*if(isClicked && getpixel(clickedx,clickedy)!=0){
-			isDragged = true;
-			//printf("dragged!\n");
-		}else{
-			isDragged = false;
-			//printf("not dragged!\n");
-		}
-		if(isDragged){
-			//cleardevice();
-			//draw_circle(mousex(),mousey(),rad,2);
-		}
-		*/
 	} 
 	//close program
     closegraph();
