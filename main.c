@@ -2,6 +2,7 @@
 #include "winbgim.h"
 #include "line-bresenham.c"
 #include "areafill.c"
+#include "drawellipse.c"
 #include <stdio.h>
 
 #define MBCOLOR LIGHTBLUE
@@ -26,7 +27,7 @@
 	#define min( a, b ) ( ((a) < (b)) ? (a) : (b) )
 #endif
 
-int    MaxX, MaxY;              /* The maximum resolution of the screen */
+int MaxX, MaxY;              /* The maximum resolution of the screen */
 int xc, yc;
 int selectedmenu;
 int nL=0;
@@ -167,6 +168,17 @@ void drawmenu(int x, int y) {
 			isClicked = 0;
 		}
 		break;
+	case MCIRCLE : // Menu Ellipse
+		if(isClicked==0){
+			nE++;
+			xea=x; yea=y;
+			xeb=0; yeb=0;
+			isClicked = 1;
+		}else{
+			xeb=x; yeb=y;
+			isClicked = 0;
+		}
+		break;
 	case MAREA : // Menu AreaFill
 		int tempc = getpixel(x,y);
 		int temp = getactivepage();
@@ -257,6 +269,31 @@ void render() {
 				drawLineBresenham(xa[i],ya[i], xb[i], yb[i],cl[i]);
 			}
 		}
+	}else if (isClicked == 1 && selectedmenu == MCIRCLE) { //CIRCLE/ELLIPSE
+		int i;
+		for (i=0; i<nE ; i++) {
+			if (xeb == 0) {
+				if (my[getactivepage()] > MaxY/6 +1)
+					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,BGCOLOR);
+				else 
+					drawing_ellipse(xea,yea, mx[getactivepage()], MaxY/6 +1,i,BGCOLOR);
+			}
+			else {
+				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
+			}
+		}
+		mx[getactivepage()] = mousex(); my[getactivepage()] = mousey();
+		for (i=0; i<nE ; i++) {
+			if (xeb == 0) {
+				if (my[getactivepage()] > MaxY/6 +1)
+					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,PCOLOR);
+				else 
+					drawing_ellipse(xea,yea, mx[getactivepage()], MaxY/6 +1,i,PCOLOR);
+			}
+			else {
+				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],PCOLOR);
+			}
+		}
 	}
 	// int i;
 	// for (i=0; i<nL ; i++) {
@@ -270,6 +307,7 @@ void render() {
 int main() {
 	initwindow(640,480);
 	initLine();
+	initEllipse();
 	setbkcolor(BGCOLOR);
 	selectedmenu = 0;
 	MaxX = getmaxx();
