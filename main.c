@@ -2,13 +2,12 @@
 #include "winbgim.h"
 #include "line-bresenham.c"
 #include "areafill.c"
+#include <stdio.h>
 
 #define MBCOLOR LIGHTBLUE
 #define HLCOLOR LIGHTCYAN
 #define BGCOLOR WHITE
 #define FONTCOLOR BLACK
-#define LINECOLOR BLUE
-#define FILLCOLOR GREEN
 #define NBAR 8
 #define NLINE 100
 #define MLINE 1
@@ -32,6 +31,7 @@ int xc, yc;
 int selectedmenu;
 int nL=0;
 int mx[3],my[3];
+int PCOLOR = 0;
 
 // for line
 int isClicked = 0;
@@ -110,6 +110,43 @@ void colorMenuBar() {
 		if (getpixel(selectedmenu*MaxX/NBAR+2,2) != HLCOLOR)
 			floodFill(selectedmenu*MaxX/NBAR+2,2, HLCOLOR, BGCOLOR);
 	}
+	
+	clearscreen(65,MaxY/6 + 10 , 165 , MaxY/6 + 30);
+	outtextxy(20,MaxY/6 + 10, "Color : ");
+	switch(PCOLOR) {
+	case 0 :
+		outtextxy(65,MaxY/6 + 10, "Black"); break;
+	case 1 :
+		outtextxy(65,MaxY/6 + 10, "Blue"); break;
+	case 2 :
+		outtextxy(65,MaxY/6 + 10, "Green"); break;
+	case 3 :
+		outtextxy(65,MaxY/6 + 10, "Cyan"); break;
+	case 4 :
+		outtextxy(65,MaxY/6 + 10, "Red"); break;
+	case 5 :
+		outtextxy(65,MaxY/6 + 10, "Magenta"); break;
+	case 6 :
+		outtextxy(65,MaxY/6 + 10, "Brown"); break;
+	case 7 :
+		outtextxy(65,MaxY/6 + 10, "Light Gray"); break;
+	case 8 :
+		outtextxy(65,MaxY/6 + 10, "Dark Gray"); break;
+	case 9 :
+		outtextxy(65,MaxY/6 + 10, "Light Blue"); break;
+	case 10 :
+		outtextxy(65,MaxY/6 + 10, "Light Green"); break;
+	case 11 :
+		outtextxy(65,MaxY/6 + 10, "Light Cyan"); break;
+	case 12 :
+		outtextxy(65,MaxY/6 + 10, "Light Red"); break;
+	case 13 :
+		outtextxy(65,MaxY/6 + 10, "Light Magenta"); break;
+	case 14 :
+		outtextxy(65,MaxY/6 + 10, "Yellow"); break;
+	case 15 :
+		outtextxy(65,MaxY/6 + 10, "White"); break;
+	}
 }
 
 void setmenu(int x) {
@@ -132,11 +169,13 @@ void drawmenu(int x, int y) {
 	case MAREA : // Menu AreaFill
 		int tempc = getpixel(x,y);
 		int temp = getactivepage();
-		setactivepage(1);
-		floodFill(x,y,FILLCOLOR,tempc);
-		setactivepage(2);
-		floodFill(x,y,FILLCOLOR,tempc);
-		setactivepage(temp);
+		if (tempc != PCOLOR) {
+			setactivepage(1);
+			floodFill(x,y,PCOLOR,tempc);
+			setactivepage(2);
+			floodFill(x,y,PCOLOR,tempc);
+			setactivepage(temp);
+		}
 		break;
 	}
 }
@@ -150,6 +189,22 @@ void render() {
 		}
 		else {
 			drawmenu(xc,yc);
+		}
+	}
+	
+	// COLOR TEXT
+	int key = kbhit();
+	if (key!=0) {
+		key = getch();
+		if (key == 0) {
+			key = getch();
+			drawMenuBar();
+			if (key == 75) { // Panah kiri
+				PCOLOR--;
+				if (PCOLOR == -1) PCOLOR = 15;
+			} else if (key == 77) { // Panah kanan
+				PCOLOR = (PCOLOR+1) % 16;
+			}
 		}
 	}
 	
@@ -193,12 +248,12 @@ void render() {
 			//printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
 			if (xb[i] == -1) {
 				if (my[getactivepage()] > MaxY/6 +1)
-					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], my[getactivepage()],LINECOLOR);
+					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], my[getactivepage()],PCOLOR);
 				else 
-					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], MaxY/6 +1,LINECOLOR);
+					drawLineBresenham(xa[i],ya[i], mx[getactivepage()], MaxY/6 +1,PCOLOR);
 			}
 			else {
-				drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
+				drawLineBresenham(xa[i],ya[i], xb[i], yb[i],PCOLOR);
 			}
 		}
 	}
