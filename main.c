@@ -3,6 +3,7 @@
 #include "line-bresenham.c"
 #include "areafill.c"
 #include "drawellipse.c"
+#include "drawcurve.c"
 #include <stdio.h>
 
 #define MBCOLOR LIGHTBLUE
@@ -190,6 +191,17 @@ void drawmenu(int x, int y) {
 			setactivepage(temp);
 		}
 		break;
+	case MCURVE : // Menu Curve
+		if(isClicked==0){
+			nE++;
+			xea=x; yea=y;
+			xeb=0; yeb=0;
+			isClicked = 1;
+		}else{
+			xeb=x; yeb=y;
+			isClicked = 0;
+		}
+		break;
 	}
 }
 
@@ -269,7 +281,38 @@ void render() {
 				drawLineBresenham(xa[i],ya[i], xb[i], yb[i],cl[i]);
 			}
 		}
-	}else if (isClicked == 1 && selectedmenu == MCIRCLE) { //CIRCLE/ELLIPSE
+	}
+
+	//CIRCLE/ELLIPSE
+	else if (isClicked == 1 && selectedmenu == MCIRCLE) { 
+		int i;
+		for (i=0; i<nE ; i++) {
+			if (xeb == 0) {
+				if (my[getactivepage()] > MaxY/6 +1)
+					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,BGCOLOR);
+				else 
+					drawing_ellipse(xea,yea, mx[getactivepage()], MaxY/6 +1,i,BGCOLOR);
+			}
+			else {
+				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
+			}
+		}
+		mx[getactivepage()] = mousex(); my[getactivepage()] = mousey();
+		for (i=0; i<nE ; i++) {
+			if (xeb == 0) {
+				if (my[getactivepage()] > MaxY/6 +1)
+					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,PCOLOR);
+				else 
+					drawing_ellipse(xea,yea, mx[getactivepage()], MaxY/6 +1,i,PCOLOR);
+			}
+			else {
+				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],PCOLOR);
+			}
+		}
+	}
+
+	//CURVE
+	else if (isClicked == 1 && selectedmenu == MCIRCLE) { 
 		int i;
 		for (i=0; i<nE ; i++) {
 			if (xeb == 0) {
