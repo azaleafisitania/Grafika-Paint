@@ -130,18 +130,15 @@ void initLine() {
 		xb[i] = -1;
 		yb[i] = -1;
 	}
-<<<<<<< HEAD
 	for (j=0 ; j<MaxY ; j++) {
 		for (i=0 ; i<MaxX ; i++) {
 			spixel[i][j] = 15;
 		}
-=======
 	for (i=0 ; i< NLINE ; i++) {
 		xPolA[i] = -1;
 		yPolA[i] = -1;
 		xPolB[i] = -1;
 		yPolB[i] = -1;
->>>>>>> efe79caac70eca594562731f03f8285e7d1b6c38
 	}
 }
 
