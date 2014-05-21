@@ -34,6 +34,8 @@ int nL=0;
 int mx[3],my[3];
 int PCOLOR = 0;
 
+int spixel[640][480];
+
 // for line
 int isClicked = 0;
 int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE], cl[NLINE];
@@ -71,13 +73,59 @@ void clearscreen() {
 	}
 }
 
+void savestate(){
+	int i,j;
+	for (j=MaxY/6+1 ; j<MaxY ; j++) {
+		for (i=0 ; i<MaxX ; i++) {
+			if(getpixel(i,j)!=15){
+				spixel[i][j] = getpixel(i,j);
+			}
+		}
+	}
+}
+
+void drawAll(){
+	int i,j;
+	setactivepage(1);
+	for (i=0; i<nL ; i++) {
+		drawLineBresenham(xa[i],ya[i], xb[i], yb[i],BGCOLOR);
+	}
+	for (i=0; i<nE ; i++) {
+		ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
+	}
+	for (i=0; i<nL ; i++) {
+		drawLineBresenham(xa[i],ya[i], xb[i], yb[i],cl[i]);
+	}
+	for (i=0; i<nE ; i++) {
+		ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],PCOLOR);
+	}
+	setactivepage(2);
+	for (i=0; i<nL ; i++) {
+		drawLineBresenham(xa[i],ya[i], xb[i], yb[i],BGCOLOR);
+	}
+	for (i=0; i<nE ; i++) {
+		ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
+	}
+	for (i=0; i<nL ; i++) {
+		drawLineBresenham(xa[i],ya[i], xb[i], yb[i],cl[i]);
+	}
+	for (i=0; i<nE ; i++) {
+		ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],PCOLOR);
+	}
+}
+
 void initLine() {
-	int i;
+	int i,j;
 	for (i=0 ; i< NLINE ; i++) {
 		xa[i] = -1;
 		ya[i] = -1;
 		xb[i] = -1;
 		yb[i] = -1;
+	}
+	for (j=0 ; j<MaxY ; j++) {
+		for (i=0 ; i<MaxX ; i++) {
+			spixel[i][j] = 15;
+		}
 	}
 }
 
@@ -177,6 +225,8 @@ void drawmenu(int x, int y) {
 		}else{
 			xeb=x; yeb=y;
 			isClicked = 0;
+			//savestate();
+			drawAll();
 		}
 		break;
 	case MAREA : // Menu AreaFill
@@ -205,13 +255,13 @@ void render() {
 		}
 	}
 	
-	// COLOR TEXT
+	// COLOR TEXT	
 	int key = kbhit();
 	if (key!=0) {
 		key = getch();
 		if (key == 0) {
 			key = getch();
-			drawMenuBar();
+			//drawMenuBar();
 			if (key == 75) { // Panah kiri
 				PCOLOR--;
 				if (PCOLOR == -1) PCOLOR = 15;
@@ -306,12 +356,14 @@ void render() {
 
 int main() {
 	initwindow(640,480);
+	MaxX = getmaxx();
+	MaxY = getmaxy();
 	initLine();
 	initEllipse();
 	setbkcolor(BGCOLOR);
+	setcolor(FONTCOLOR);
 	selectedmenu = 0;
-	MaxX = getmaxx();
-	MaxY = getmaxy();
+	outtextxy(65,MaxY/6 + 10, "   -----  Please wait...  -----   ");
 	setactivepage(1);
 	clear();
 	drawMenuBar();
@@ -331,7 +383,6 @@ int main() {
 		setactivepage(2);
 		render();
 		setvisualpage(2);
-		
 	}
 	
 	closegraph();
