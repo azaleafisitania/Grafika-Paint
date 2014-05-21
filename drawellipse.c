@@ -42,3 +42,13 @@ void drawing_ellipse(int sx, int sy, int fx, int fy, int index, int color){
 	ellipseMidpoint(cx[index],cy[index],radx[index],rady[index],color);
 }
 
+void clearing_ellipse(int sx, int sy, int fx, int fy, int index, int color, int bgcolor){
+	int rx = (fx-sx)/2;
+	int ry = (fy-sy)/2;
+	radx[index] = abs(rx);
+	rady[index] = abs(ry);
+	cx[index] = sx+rx;
+	cy[index] = sy+ry;
+	makingEllipse(cx[index],cy[index],radx[index],rady[index],color,bgcolor);
+}
+
