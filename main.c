@@ -3,7 +3,7 @@
 #include "line-bresenham.c"
 #include "areafill.c"
 #include "drawellipse.c"
-#include "drawcurve.c"
+#include "bezier.c"
 #include <stdio.h>
 
 #define MBCOLOR LIGHTBLUE
@@ -12,6 +12,8 @@
 #define FONTCOLOR BLACK
 #define NBAR 8
 #define NLINE 100
+#define NCURVE 100 //Curve
+#define NPOINT 100 //Curve
 #define MSELECT 0
 #define MLINE 1
 #define MCIRCLE 2
@@ -32,19 +34,24 @@
 int MaxX, MaxY;              /* The maximum resolution of the screen */
 int xc, yc;
 int selectedmenu;
-int nL=0;
-int nPol=0;
 int mx[3],my[3];
 int PCOLOR = 0;
 
 // for line
+int nL=0;
 int isClicked = 0;
 int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE], cl[NLINE];
 
-
 // polygon
+int nPol=0;
 int xPolA[NLINE], yPolA[NLINE], xPolB[NLINE], yPolB[NLINE], clPol[NLINE];
 int xPolTemp, yPolTemp;
+
+//curve
+int nCurve = 0; 
+int nPoint = 0;
+int xCurve[NPOINT][NCURVE], yCurve[NPOINT][NCURVE], colorCurve[NCURVE];
+
 
 void clear() {
 	int i,j;
@@ -215,17 +222,13 @@ void drawmenu(int x, int y) {
 		break;
 	case MCURVE : // Menu Curve
 		if (isClicked==0) {
-			nC++; nP++;
-			xca[nP-1][nC-1]=x; yca[nP-1][nC-1]=y;
-			cc[nC-1] = PCOLOR;
+			nCurve++; nPoint=1;
+			xCurve[nPoint-1][nCurve-1]=x; yCurve[nPoint-1][nCurve-1]=y;
+			colorCurve[nCurve-1] = PCOLOR;
 			isClicked = 1;
 		} else {
-			nP++;
-			xcb[nP-1][nC-1]=x; ycb[nP-1][nC-1]=y;
-			int key = getch();
-			if(key=65) {
-				isClicked=0;	
-			}
+			nPoint++;
+			xCurve[nPoint-1][nCurve-1]=x; yCurve[nPoint-1][nCurve-1]=y;
 		}
 		break;
 	case MPOLYGON : // Menu Polygon
@@ -362,8 +365,12 @@ void render() {
 
 	//CURVE
 	else if (isClicked == 1 && selectedmenu == MCURVE) { 
-		int i;
-		for (i=0; i<nC ; i++) {
+		int i, j;
+		for (i=0; i<nCurve; i++) {
+			for(j=0; j<nPoint; j++) {
+				printf("Curve %d Point %d: (%d,%d)\n", i, j, xCurve[j][i], yCurve[j][i]);	
+			}
+			
 		/*
 			if (xcb == 0) {
 				if (my[getactivepage()] > MaxY/6 +1)
@@ -375,8 +382,13 @@ void render() {
 				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
 			}*/
 		}
+		
+			int key = kbhit();
+			if (key!=0) {
+				isClicked=0;
+			}
 		mx[getactivepage()] = mousex(); my[getactivepage()] = mousey();
-		for (i=0; i<nC ; i++) {/*
+		for (i=0; i<nCurve ; i++) {/*
 			if (xcb == 0) {
 				if (my[getactivepage()] > MaxY/6 +1)
 					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,PCOLOR);
