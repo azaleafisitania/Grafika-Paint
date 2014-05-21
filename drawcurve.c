@@ -1,15 +1,16 @@
-// FILE: drawellipse.c
+// FILE: drawcurve.c
 #include <graphics.h>
 #include "winbgim.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include "ellipse.c"
-#include "circle.c"
+#include "bezier.c"
 //Variabel Global
 #define NCURVE 100
-int nE = 0;
-int xea,yea,xeb,yeb;
-int cx[NCURVE],cy[NCURVE],radx[NCURVE],rady[NCURVE];
+#define NPOINT 100
+
+int nC = 0; 
+int nP = 0;
+int xca[NPOINT][NCURVE],yca[NPOINT][NCURVE],xcb[NPOINT][NCURVE],ycb[NPOINT][NCURVE], cc[NCURVE];
 
 void initCurve() {
 	int i;
@@ -20,25 +21,3 @@ void initCurve() {
 		rady[i] = 0;
 	}
 }
-
-/*void drawing_circle(int sx, int sy, int cx, int cy, int rad){
-	int fx = mousex();
-	int fy = mousey();
-	int r = (fx-sx)/2;
-	rad = r;
-	cx = sx+r;
-	cy = sy+r;
-	draw_circle(cx,cy,r,2);
-
-}*/
-
-/*void drawing_curve(int sx, int sy, int fx, int fy, int index, int color){
-	int rx = (fx-sx)/2;
-	int ry = (fy-sy)/2;
-	radx[index] = abs(rx);
-	rady[index] = abs(ry);
-	cx[index] = sx+rx;
-	cy[index] = sy+ry;
-	ellipseMidpoint(cx[index],cy[index],radx[index],rady[index],color);
-}*/
-

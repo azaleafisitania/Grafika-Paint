@@ -1,6 +1,14 @@
 #ifndef __BEZIER
 #define __BEZIER
 
+int originX(int x){
+	return ((getmaxx()/2)+x);
+}
+
+int originY(int y){
+	return ((getmaxy()/2)-y);
+}
+
 double Bezier(int n, int p[], double t){
 	// cout << "Bezier(" << n << ", ";
 	// for (int i=0; i<n; i++){
@@ -49,7 +57,7 @@ void bezier (int x[], int y[], int n, int color)
 		//cout << xt<< " ";
 		double yt = Bezier(n, y, t);
  
-		putpixel(originX(xt), originY(yt), color);
+		putpixel(originX((int) xt), originY((int) yt), color);
     }
  
     for (i=0; i<n; i++)
