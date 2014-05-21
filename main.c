@@ -12,6 +12,7 @@
 #define FONTCOLOR BLACK
 #define NBAR 8
 #define NLINE 100
+#define MSELECT 0
 #define MLINE 1
 #define MCIRCLE 2
 #define MAREA 3
@@ -90,7 +91,7 @@ void drawMenuBar() {
 		drawLineBresenham(MaxX/NBAR*i,0 , MaxX/NBAR*i,MaxY/6, MBCOLOR);
 	}
 	setcolor(FONTCOLOR);
-	outtextxy(MaxX/NBAR*0+15,MaxY/12-8,"SELECT");
+	outtextxy(MaxX/NBAR*MSELECT+15,MaxY/12-8,"SELECT");
 	outtextxy(MaxX/NBAR*MLINE+27,MaxY/12-8,"LINE");
 	outtextxy(MaxX/NBAR*MCIRCLE+15,MaxY/12-8,"CIRCLE");
 	outtextxy(MaxX/NBAR*MAREA+9,MaxY/12-8,"AREAFILL");
@@ -158,6 +159,13 @@ void setmenu(int x) {
 void drawmenu(int x, int y) {
 	//clearscreen();
 	switch(selectedmenu) {
+	/*case MSELECT :	// Menu Select, used Curve
+		if (isClicked==1) {
+			isClicked = 0;
+		} else {
+			isClicked = 1;
+		}
+		break;*/
 	case MLINE :	// Menu Line
 		if (isClicked==0) {
 			nL++;
@@ -181,8 +189,10 @@ void drawmenu(int x, int y) {
 		}
 		break;
 	case MAREA : // Menu AreaFill
-		int tempc = getpixel(x,y);
-		int temp = getactivepage();
+		int tempc;
+		int temp;
+		tempc = getpixel(x,y);
+		temp = getactivepage();
 		if (tempc != PCOLOR) {
 			setactivepage(1);
 			floodFill(x,y,PCOLOR,tempc);
@@ -192,14 +202,18 @@ void drawmenu(int x, int y) {
 		}
 		break;
 	case MCURVE : // Menu Curve
-		if(isClicked==0){
-			nE++;
-			xea=x; yea=y;
-			xeb=0; yeb=0;
+		if (isClicked==0) {
+			nC++; nP++;
+			xca[nP-1][nC-1]=x; yca[nP-1][nC-1]=y;
+			cc[nC-1] = PCOLOR;
 			isClicked = 1;
-		}else{
-			xeb=x; yeb=y;
-			isClicked = 0;
+		} else {
+			nP++;
+			xcb[nP-1][nC-1]=x; ycb[nP-1][nC-1]=y;
+			int key = getch();
+			if(key=65) {
+				isClicked=0;	
+			}
 		}
 		break;
 	}
@@ -312,10 +326,10 @@ void render() {
 	}
 
 	//CURVE
-	else if (isClicked == 1 && selectedmenu == MCIRCLE) { 
+	else if (isClicked == 1 && selectedmenu == MCURVE) { 
 		int i;
-		for (i=0; i<nE ; i++) {
-			if (xeb == 0) {
+		for (i=0; i<nC ; i++) {/*
+			if (xcb == 0) {
 				if (my[getactivepage()] > MaxY/6 +1)
 					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,BGCOLOR);
 				else 
@@ -323,11 +337,11 @@ void render() {
 			}
 			else {
 				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
-			}
+			}*/
 		}
 		mx[getactivepage()] = mousex(); my[getactivepage()] = mousey();
-		for (i=0; i<nE ; i++) {
-			if (xeb == 0) {
+		for (i=0; i<nC ; i++) {/*
+			if (xcb == 0) {
 				if (my[getactivepage()] > MaxY/6 +1)
 					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,PCOLOR);
 				else 
@@ -335,16 +349,9 @@ void render() {
 			}
 			else {
 				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],PCOLOR);
-			}
+			}*/
 		}
 	}
-	// int i;
-	// for (i=0; i<nL ; i++) {
-		// if (xb[i] != -1) {
-			// drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
-		// }
-	// }
-	
 }
 
 int main() {
