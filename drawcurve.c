@@ -32,7 +32,7 @@ void initCurve() {
 
 }*/
 
-void drawing_curve(int sx, int sy, int fx, int fy, int index, int color){
+/*void drawing_curve(int sx, int sy, int fx, int fy, int index, int color){
 	int rx = (fx-sx)/2;
 	int ry = (fy-sy)/2;
 	radx[index] = abs(rx);
@@ -40,5 +40,5 @@ void drawing_curve(int sx, int sy, int fx, int fy, int index, int color){
 	cx[index] = sx+rx;
 	cy[index] = sy+ry;
 	ellipseMidpoint(cx[index],cy[index],radx[index],rady[index],color);
-}
+}*/
 

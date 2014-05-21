@@ -3,7 +3,7 @@
 #include "line-bresenham.c"
 #include "areafill.c"
 #include "drawellipse.c"
-#include "drawcurve.c"
+//#include "drawcurve.c"
 #include <stdio.h>
 
 #define MBCOLOR LIGHTBLUE
@@ -32,12 +32,17 @@ int MaxX, MaxY;              /* The maximum resolution of the screen */
 int xc, yc;
 int selectedmenu;
 int nL=0;
+int nPol=0;
 int mx[3],my[3];
 int PCOLOR = 0;
 
 // for line
 int isClicked = 0;
 int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE], cl[NLINE];
+
+// polygon
+int xPolA[NLINE], yPolA[NLINE], xPolB[NLINE], yPolB[NLINE], clPol[NLINE];
+int xPolTemp, yPolTemp;
 
 void clear() {
 	int i,j;
@@ -79,6 +84,12 @@ void initLine() {
 		ya[i] = -1;
 		xb[i] = -1;
 		yb[i] = -1;
+	}
+	for (i=0 ; i< NLINE ; i++) {
+		xPolA[i] = -1;
+		yPolA[i] = -1;
+		xPolB[i] = -1;
+		yPolB[i] = -1;
 	}
 }
 
@@ -181,8 +192,10 @@ void drawmenu(int x, int y) {
 		}
 		break;
 	case MAREA : // Menu AreaFill
-		int tempc = getpixel(x,y);
-		int temp = getactivepage();
+		int tempc;
+		tempc = getpixel(x,y);
+		int temp;
+		temp = getactivepage();
 		if (tempc != PCOLOR) {
 			setactivepage(1);
 			floodFill(x,y,PCOLOR,tempc);
@@ -200,6 +213,29 @@ void drawmenu(int x, int y) {
 		}else{
 			xeb=x; yeb=y;
 			isClicked = 0;
+		}
+		break;
+	case MPOLYGON : // Menu Polygon
+		if (isClicked==0) {
+			nPol++;
+			xPolTemp = x;
+			yPolTemp = y;
+			xPolA[nPol-1] = x; 
+			yPolA[nPol-1] = y;
+			clPol[nPol-1] = PCOLOR;
+			isClicked = 1;
+		} else {
+			xPolB[nPol-1] = x; 
+			yPolB[nPol-1] = y;
+			if ((xPolB[nPol-1] > xPolTemp - 20) && (xPolB[nPol-1] < xPolTemp + 20) && 
+				(yPolB[nPol-1] > yPolTemp - 20) && (yPolB[nPol-1] < yPolTemp + 20)) {
+				isClicked = 0;
+			} else {
+				nPol++;
+				xPolA[nPol-1] = x; 
+				yPolA[nPol-1] = y;
+				clPol[nPol-1] = PCOLOR;
+			}
 		}
 		break;
 	}
@@ -310,34 +346,50 @@ void render() {
 			}
 		}
 	}
-
-	//CURVE
-	else if (isClicked == 1 && selectedmenu == MCIRCLE) { 
-		int i;
-		for (i=0; i<nE ; i++) {
-			if (xeb == 0) {
+	
+	// POLYGON
+	else if (isClicked == 1 && selectedmenu == MPOLYGON) {
+		int i, xmin=MaxX, ymin=MaxY, xmax = 0, ymax = 0;
+		
+		for (i=0; i<nPol ; i++) {
+			//printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
+			if (xPolB[i] == -1) {
 				if (my[getactivepage()] > MaxY/6 +1)
-					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,BGCOLOR);
+					drawLineBresenham(xPolA[i], yPolA[i], mx[getactivepage()], my[getactivepage()], BGCOLOR);
 				else 
-					drawing_ellipse(xea,yea, mx[getactivepage()], MaxY/6 +1,i,BGCOLOR);
+					drawLineBresenham(xPolA[i], yPolA[i], mx[getactivepage()], MaxY/6 +1, BGCOLOR);
 			}
 			else {
-				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
+				drawLineBresenham(xPolA[i], yPolA[i], xPolB[i], yPolB[i], BGCOLOR);
 			}
 		}
+		
 		mx[getactivepage()] = mousex(); my[getactivepage()] = mousey();
-		for (i=0; i<nE ; i++) {
-			if (xeb == 0) {
+		
+		if ((mx[getactivepage()] > xPolTemp - 20) && (mx[getactivepage()] < xPolTemp + 20) && 
+			(my[getactivepage()] > yPolTemp - 20) && (my[getactivepage()] < yPolTemp + 20)) {
+				xPolB[nPol-1] = xPolTemp;
+				yPolB[nPol-1] = yPolTemp;
+				//isClicked=0;
+		} else {
+			xPolB[nPol-1] = -1;
+			yPolB[nPol-1] = -1;
+		}
+		
+		for (i=0; i<nPol ; i++) {
+			//printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
+			if (xPolB[i] == -1) {
 				if (my[getactivepage()] > MaxY/6 +1)
-					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,PCOLOR);
+					drawLineBresenham(xPolA[i], yPolA[i], mx[getactivepage()], my[getactivepage()], clPol[i]);
 				else 
-					drawing_ellipse(xea,yea, mx[getactivepage()], MaxY/6 +1,i,PCOLOR);
+					drawLineBresenham(xPolA[i], yPolA[i], mx[getactivepage()], MaxY/6 +1, clPol[i]);
 			}
 			else {
-				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],PCOLOR);
+				drawLineBresenham(xPolA[i], yPolA[i], xPolB[i], yPolB[i], clPol[i]);
 			}
-		}
+		}	
 	}
+	
 	// int i;
 	// for (i=0; i<nL ; i++) {
 		// if (xb[i] != -1) {
