@@ -93,14 +93,12 @@ void savestate(){
 }
 
 void drawAll(){
-	int i,temp;
-	temp = getactivepage();
+	int i,j;
 	setactivepage(1);
-	//clearscreen();
-	/*for (i=0; i<nL ; i++) {
+	for (i=0; i<nL ; i++) {
 		drawLineBresenham(xa[i],ya[i], xb[i], yb[i],BGCOLOR);
 	}
-	for (i=0; i<nE ; i++) {
+	/*for (i=0; i<nE ; i++) {
 		ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
 	}*/
 	for (i=0; i<nL ; i++) {
@@ -110,11 +108,10 @@ void drawAll(){
 		ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],PCOLOR);
 	}
 	setactivepage(2);
-	//clearscreen();
-	/*for (i=0; i<nL ; i++) {
+	for (i=0; i<nL ; i++) {
 		drawLineBresenham(xa[i],ya[i], xb[i], yb[i],BGCOLOR);
 	}
-	for (i=0; i<nE ; i++) {
+	/*for (i=0; i<nE ; i++) {
 		ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
 	}*/
 	for (i=0; i<nL ; i++) {
@@ -123,7 +120,6 @@ void drawAll(){
 	for (i=0; i<nE ; i++) {
 		ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],PCOLOR);
 	}
-	setactivepage(temp);
 }
 
 void initLine() {
@@ -234,7 +230,6 @@ void drawmenu(int x, int y) {
 		} else {
 			xb[nL-1]=x; yb[nL-1]=y;
 			isClicked = 0;
-			drawAll();
 		}
 		break;
 	case MCIRCLE : // Menu Ellipse
@@ -242,11 +237,11 @@ void drawmenu(int x, int y) {
 			nE++;
 			xea=x; yea=y;
 			xeb=0; yeb=0;
-			ce[nL-1] = PCOLOR;
 			isClicked = 1;
 		}else{
 			xeb=x; yeb=y;
 			isClicked = 0;
+			//savestate();
 			drawAll();
 		}
 		break;
@@ -335,6 +330,24 @@ void render() {
 	//LINE
 	if (isClicked == 1 && selectedmenu == MLINE) {
 		int i,xmin=MaxX,ymin=MaxY,xmax=0,ymax=0;
+		// for (i=0 ; i<nL ; i++) {
+			// if (xb[i] == -1) {
+				// xmin = min(xmin,xa[i]);
+				// ymin = min(ymin,ya[i]);
+			// }
+			// else {
+				// xmin = min(min(xmin,xa[i]),xb[i]);
+				// ymin = min(min(ymin,ya[i]),yb[i]);
+			// }
+			// xmax = max(max(xmax,xa[i]),xb[i]);
+			// ymax = max(max(ymax,ya[i]),yb[i]);
+			// if (isClicked == 1 && i == nL-1) {
+				// xmax = mx;
+				// ymax = my;
+			// }
+		// }
+		// clearscreen(xmin,ymin,xmax,ymax);
+		
 		for (i=0; i<nL ; i++) {
 			//printf("xa[%d]:%d , ya[%d]:%d , xb[%d]:%d , yb[%d]:%d  \n",i,xa[i],i,ya[i],i,xb[i],i,yb[i]);
 			if (xb[i] == -1) {
@@ -442,14 +455,9 @@ void render() {
 		
 		if ((mx[getactivepage()] > xPolTemp - 20) && (mx[getactivepage()] < xPolTemp + 20) && 
 			(my[getactivepage()] > yPolTemp - 20) && (my[getactivepage()] < yPolTemp + 20)) {
-				int temp = getactivepage();
-				setactivepage(1);
-				drawLineBresenham(xPolA[nPol-1], yPolA[nPol-1], xPolB[nPol-1], yPolB[nPol-1], BGCOLOR);
-				setactivepage(2);
-				drawLineBresenham(xPolA[nPol-1], yPolA[nPol-1], xPolB[nPol-1], yPolB[nPol-1], BGCOLOR);
-				setactivepage(temp);
 				xPolB[nPol-1] = xPolTemp;
 				yPolB[nPol-1] = yPolTemp;
+				//isClicked=0;
 		} else {
 			xPolB[nPol-1] = -1;
 			yPolB[nPol-1] = -1;
