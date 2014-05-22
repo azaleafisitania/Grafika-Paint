@@ -106,6 +106,20 @@ void clip() {
 	}
 }
 
+//ANTICLIPPING
+void anticlip(){
+	int i,j;
+	int y1 = clipWindow.offsetY, y2 = clipWindow.offsetY+clipWindow.height;
+	int x1 = clipWindow.offsetX, x2 = clipWindow.offsetX+clipWindow.width;
+	for (j= y1; j <= y2; j++){
+		for (i = x1; i <= x2; i++){
+			if(getpixel(i,j)!=BGCOLOR){
+				putpixel(i,j,BGCOLOR);
+			}
+		}
+	}
+}
+
 void savestate(){
 	int i,j;
 	for (j=MaxY/6+1 ; j<MaxY ; j++) {
@@ -243,6 +257,7 @@ void colorMenuBar() {
 		case MCIRCLE : outtextxy(300,MaxY/6 + 10, "CIR "); break;
 		case MPOLYGON : outtextxy(300,MaxY/6 + 10, "POL "); break;
 		case MCURVE : outtextxy(300,MaxY/6 + 10, "CUR "); break;
+		case MANTI : outtextxy(300,MaxY/6 + 10, "ACL "); break;
 	}
 	char str[4];
 	outtextxy(400,MaxY/6 + 10, itoa(PCURRENT, str, 4));
@@ -288,6 +303,7 @@ void setmenu(int x) {
 }
 
 void drawmenu(int x, int y) {
+	printf("masuk sini, x = %d, y = %d, isClicked = %d\n", x, y, isClicked);
 	//clearscreen();
 	switch(selectedmenu) {
 	case MLINE :	// Menu Line
@@ -355,6 +371,32 @@ void drawmenu(int x, int y) {
 			setactivepage(temp);
 		}
 		break;	
+	// ANTI CLIP
+	case MANTI :
+		if (isClicked==0) {
+			if(clipWindow.offsetX!=-1){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawWindow(clipWindow, BGCOLOR);
+				setactivepage(2);
+				drawWindow(clipWindow, BGCOLOR);
+				setactivepage(temp);
+			}
+			xclipa=x; yclipa=y;
+			xclipb=-1; yclipb=-1;
+			cclip = BLACK;
+			isClicked = 1;
+		} else {
+			xclipb=x; yclipb=y;
+			//xclipa=-1; yclipa=-1;
+			isClicked = 0;
+			int temp = getactivepage();
+			setactivepage(1);
+			anticlip(); 
+			setactivepage(2);
+			anticlip(); 
+			setactivepage(temp);
+		}
 	case MCURVE : // Menu Curve
 		if (isClicked==0) {
 			nCurve++; nPoint=1;
@@ -698,6 +740,41 @@ void render() {
 	//CLIPPING
 	else if (isClicked == 1 && selectedmenu == MCLIP) {
 		int i,xmin=MaxX,ymin=MaxY,xmax=0,ymax=0;
+		
+		if (xclipb == -1) {
+			if (my[getactivepage()] > MaxY/6 +1){
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, my[getactivepage()]-yclipa);
+				drawWindow(clipWindow, BGCOLOR);
+			}
+			else{
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, (MaxY/6 +1)-yclipa);
+				drawWindow(clipWindow, BGCOLOR);
+			}
+		}
+		else {
+			clipWindow = makeWindow(xclipa,yclipa, xclipb-xclipa, yclipb-yclipa);
+			drawWindow(clipWindow, BGCOLOR);
+		}
+		mx[getactivepage()] = mousex(); my[getactivepage()] = mousey();
+		if (xclipb == -1) {
+			if (my[getactivepage()] > MaxY/6 +1){
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, my[getactivepage()]-yclipa);
+				drawWindow(clipWindow, cclip);
+			}
+			else{ 
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, (MaxY/6 +1)-yclipa);
+				drawWindow(clipWindow, cclip);
+			}
+		}
+		else {
+			clipWindow = makeWindow(xclipa,yclipa, xclipb-xclipa, yclipb-yclipa);
+			drawWindow(clipWindow, BGCOLOR);
+		}
+	}
+	// ANTICLIP
+	else if (isClicked == 1 && selectedmenu == MANTI) {
+		int i,xmin=MaxX,ymin=MaxY,xmax=0,ymax=0;
+		
 		if (xclipb == -1) {
 			if (my[getactivepage()] > MaxY/6 +1){
 				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, my[getactivepage()]-yclipa);
