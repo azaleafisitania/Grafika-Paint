@@ -1,13 +1,7 @@
 #ifndef __BEZIER
 #define __BEZIER
 
-int originX(int x){
-	return ((getmaxx()/2)+x);
-}
 
-int originY(int y){
-	return ((getmaxy()/2)-y);
-}
 
 double Bezier(int n, int p[], double t){
 	// cout << "Bezier(" << n << ", ";

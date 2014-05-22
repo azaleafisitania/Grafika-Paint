@@ -1,4 +1,4 @@
-#include "InitGrafika.h"
+//#include "InitGrafika.h"
 #include "transform.c"
 
 typedef struct {

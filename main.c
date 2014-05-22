@@ -96,8 +96,10 @@ void clip() {
 	int i,j;
 	for (j=MaxY/6+1 ; j<MaxY ; j++) {
 		for (i=0 ; i<MaxX ; i++) {
-			if((i<clipWindow.offsetX)||(j<clipWindow.offsetY)||(i>(clipWindow.offsetX)+(clipWindow.width))||(j>(clipWindow.offsetY)+(clipWindow.height))){
-				putpixel(i,j,BGCOLOR);
+			if((i<clipWindow.offsetX)||(j<clipWindow.offsetY)||(i>clipWindow.offsetX+clipWindow.width)||(j>clipWindow.offsetY+clipWindow.height)){
+				if(getpixel(i,j)!=BGCOLOR){
+					putpixel(i,j,BGCOLOR);
+				}
 			}
 		}
 	}
@@ -211,11 +213,6 @@ void translasi(int transX, int transY){
 	int i, j;
 	clipWindow.offsetX += transX;
 	clipWindow.offsetY += transY;
-	/*for (i=0; ((i<w.width)||(i>w.width)); (w.width>0)?i++:i--){
-		for (j=0; ((j<w.height)||j>w.height); (w.height>0)?j++:j--){
-			putpixel(w.offsetX+i+transX, w.offsetY+j+transY, getpixel(w.offsetX+i, w.offsetY+j));
-		}
-	}*/
 }
 
 void colorMenuBar() {
@@ -330,6 +327,12 @@ void drawmenu(int x, int y) {
 			xclipb=x; yclipb=y;
 			//xclipa=-1; yclipa=-1;
 			isClicked = 0;
+			int temp = getactivepage();
+			setactivepage(1);
+			clip();
+			setactivepage(2);
+			clip();
+			setactivepage(temp);
 		}
 		break;	
 	case MCURVE : // Menu Curve
