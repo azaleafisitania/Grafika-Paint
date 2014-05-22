@@ -167,13 +167,12 @@ void initLine() {
 		xb[i] = -1;
 		yb[i] = -1;
 	}
-<<<<<<< HEAD
 	for (i=0 ; i< NLINE ; i++) {
 		xPolA[i] = -1;
 		yPolA[i] = -1;
 		xPolB[i] = -1;
 		yPolB[i] = -1;
-=======
+	}
 	for (j=0 ; j<MaxY ; j++) {  
 		for (i=0 ; i<MaxX ; i++) {
 			spixel[i][j] = 15;
@@ -184,7 +183,6 @@ void initLine() {
 			xPolB[i] = -1;
 			yPolB[i] = -1;
 		}
->>>>>>> 260aa8579b590d5beaa51c247507fc546842bdc5
 	}
 	for (i=0; i<NCURVE;i++) { // Curve
 		for (j=0;j<NPOINT;j++) {
