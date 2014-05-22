@@ -3,6 +3,7 @@
 #include "line-bresenham.c"
 #include "areafill.c"
 #include "drawellipse.c"
+#include "clipping.c"
 #include <stdio.h>
 
 #define MBCOLOR LIGHTBLUE
@@ -37,7 +38,9 @@ int PCOLOR = 0;
 // for line
 int isClicked = 0;
 int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE], cl[NLINE];
-
+//CLIPPING
+int xclipa, yclipa, xclipb, yclipb, cclip;
+GWindow clipWindow = makeWindow(-1,-1,0,0);
 void clear() {
 	int i,j;
 	for (j=0 ; j<MaxY ; j++) {
@@ -70,6 +73,17 @@ void clearscreen() {
 		}
 	}
 }
+//CLIPPING
+void clip() {
+	int i,j;
+	for (j=MaxY/6+1 ; j<MaxY ; j++) {
+		for (i=0 ; i<MaxX ; i++) {
+			if((i<clipWindow.offsetX)||(j<clipWindow.offsetY)||(i>(clipWindow.offsetX)+(clipWindow.width))||(j>(clipWindow.offsetY)+(clipWindow.height))){
+				putpixel(i,j,BGCOLOR);
+			}
+		}
+	}
+}
 
 void initLine() {
 	int i;
@@ -79,6 +93,13 @@ void initLine() {
 		xb[i] = -1;
 		yb[i] = -1;
 	}
+}
+//CLIPPING
+void initGWindow(){
+	xclipa = -1;
+	yclipa = -1;
+	xclipb = -1;
+	yclipb = -1;
 }
 
 void drawMenuBar() {
@@ -97,8 +118,19 @@ void drawMenuBar() {
 	outtextxy(MaxX/NBAR*MCURVE+17,MaxY/12-8,"CURVE");
 	outtextxy(MaxX/NBAR*MCLIP+8,MaxY/12-8,"CLIPPING");
 	outtextxy(MaxX/NBAR*MANTI+11,MaxY/12-8,"ANTICLIP");
+	 
 	
-	
+}
+//CLIPPING
+void translasi(int transX, int transY){
+	int i, j;
+	clipWindow.offsetX += transX;
+	clipWindow.offsetY += transY;
+	/*for (i=0; ((i<w.width)||(i>w.width)); (w.width>0)?i++:i--){
+		for (j=0; ((j<w.height)||j>w.height); (w.height>0)?j++:j--){
+			putpixel(w.offsetX+i+transX, w.offsetY+j+transY, getpixel(w.offsetX+i, w.offsetY+j));
+		}
+	}*/
 }
 
 void colorMenuBar() {
@@ -180,8 +212,10 @@ void drawmenu(int x, int y) {
 		}
 		break;
 	case MAREA : // Menu AreaFill
-		int tempc = getpixel(x,y);
-		int temp = getactivepage();
+		int tempc;
+		tempc = getpixel(x,y);
+		int temp;
+		temp = getactivepage();
 		if (tempc != PCOLOR) {
 			setactivepage(1);
 			floodFill(x,y,PCOLOR,tempc);
@@ -190,6 +224,27 @@ void drawmenu(int x, int y) {
 			setactivepage(temp);
 		}
 		break;
+	//CLIPPING
+	case MCLIP :	// Menu Clip
+		if (isClicked==0) {
+			if(clipWindow.offsetX!=-1){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawWindow(clipWindow, BGCOLOR);
+				setactivepage(2);
+				drawWindow(clipWindow, BGCOLOR);
+				setactivepage(temp);
+			}
+			xclipa=x; yclipa=y;
+			xclipb=-1; yclipb=-1;
+			cclip = BLACK;
+			isClicked = 1;
+		} else {
+			xclipb=x; yclipb=y;
+			//xclipa=-1; yclipa=-1;
+			isClicked = 0;
+		}
+		break;	
 	}
 }
 
@@ -218,6 +273,66 @@ void render() {
 			} else if (key == 77) { // Panah kanan
 				PCOLOR = (PCOLOR+1) % 16;
 			}
+		}
+		else if (key == 'w') {
+			int temp = getactivepage();
+			setactivepage(1);
+			drawWindow(clipWindow, BGCOLOR);
+			setactivepage(2);
+			drawWindow(clipWindow, BGCOLOR);
+			setactivepage(temp);
+			translasi(0, -20);
+			temp = getactivepage();
+			setactivepage(1);
+			drawWindow(clipWindow, cclip);
+			setactivepage(2);
+			drawWindow(clipWindow, cclip);
+			setactivepage(temp);
+		}
+		else if (key == 's') {
+			int temp = getactivepage();
+			setactivepage(1);
+			drawWindow(clipWindow, BGCOLOR);
+			setactivepage(2);
+			drawWindow(clipWindow, BGCOLOR);
+			setactivepage(temp);
+			translasi(0, 20);
+			temp = getactivepage();
+			setactivepage(1);
+			drawWindow(clipWindow, cclip);
+			setactivepage(2);
+			drawWindow(clipWindow, cclip);
+			setactivepage(temp);
+		}
+		else if (key == 'a') {
+			int temp = getactivepage();
+			setactivepage(1);
+			drawWindow(clipWindow, BGCOLOR);
+			setactivepage(2);
+			drawWindow(clipWindow, BGCOLOR);
+			setactivepage(temp);
+			translasi(-20, 0);
+			temp = getactivepage();
+			setactivepage(1);
+			drawWindow(clipWindow, cclip);
+			setactivepage(2);
+			drawWindow(clipWindow, cclip);
+			setactivepage(temp);
+		}
+		else if (key == 'd') {
+			int temp = getactivepage();
+			setactivepage(1);
+			drawWindow(clipWindow, BGCOLOR);
+			setactivepage(2);
+			drawWindow(clipWindow, BGCOLOR);
+			setactivepage(temp);
+			translasi(20, 0);
+			temp = getactivepage();
+			setactivepage(1);
+			drawWindow(clipWindow, cclip);
+			setactivepage(2);
+			drawWindow(clipWindow, cclip);
+			setactivepage(temp);
 		}
 	}
 	
@@ -295,18 +410,46 @@ void render() {
 			}
 		}
 	}
-	// int i;
-	// for (i=0; i<nL ; i++) {
-		// if (xb[i] != -1) {
-			// drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
-		// }
-	// }
-	
+	//CLIPPING
+	else if (isClicked == 1 && selectedmenu == MCLIP) {
+		int i,xmin=MaxX,ymin=MaxY,xmax=0,ymax=0;
+		if (xclipb == -1) {
+			if (my[getactivepage()] > MaxY/6 +1){
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, my[getactivepage()]-yclipa);
+				drawWindow(clipWindow, BGCOLOR);
+			}
+			else{
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, (MaxY/6 +1)-yclipa);
+				drawWindow(clipWindow, BGCOLOR);
+			}
+		}
+		else {
+			clipWindow = makeWindow(xclipa,yclipa, xclipb-xclipa, yclipb-yclipa);
+			drawWindow(clipWindow, BGCOLOR);
+		}
+		mx[getactivepage()] = mousex(); my[getactivepage()] = mousey();
+		if (xclipb == -1) {
+			if (my[getactivepage()] > MaxY/6 +1){
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, my[getactivepage()]-yclipa);
+				drawWindow(clipWindow, cclip);
+			}
+			else{ 
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, (MaxY/6 +1)-yclipa);
+				drawWindow(clipWindow, cclip);
+			}
+		}
+		else {
+			clipWindow = makeWindow(xclipa,yclipa, xclipb-xclipa, yclipb-yclipa);
+			drawWindow(clipWindow, BGCOLOR);
+		}
+	}
 }
 
 int main() {
 	initwindow(640,480);
 	initLine();
+	//CLIPPING
+	initGWindow();
 	initEllipse();
 	setbkcolor(BGCOLOR);
 	selectedmenu = 0;
@@ -337,4 +480,3 @@ int main() {
 	closegraph();
 	return 0;
 }
-

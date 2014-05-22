@@ -1,0 +1,12 @@
+Beberapa perubahan pada transform.c:
+	1. main dihilangkan
+	2. makeMatrixScale(int, int) menjadi makeMatrixScale(double, double)
+	3. makeMatrixShear(int, int) menjadi makeMatrixShear(double, double)
+
+Beberapa hal yang perlu diperhatikan pada clipping.c:
+	1. masih ada bug untuk garis lurus. I'm working on it.
+	2. tampilan dan interaksinya masih aneh. I'll be working on it later.
+-----------------------------------------------------------------------------
+versi 2
+	1. interaksi : gunakan w, a, s, d untuk menggeser clipWindow. gunakan = untuk zoom-in, dan - untuk zoom-out.
+	2. masih ada bug buat garis lurus dan tegak.
