@@ -3,7 +3,8 @@
 #include "line-bresenham.c"
 #include "areafill.c"
 #include "drawellipse.c"
-#include "drawcurve.c"
+#include "clipping.c"
+#include "bezier.c"
 #include <stdio.h>
 
 #define MBCOLOR LIGHTBLUE
@@ -12,6 +13,8 @@
 #define FONTCOLOR BLACK
 #define NBAR 8
 #define NLINE 100
+#define NCURVE 100 //Curve
+#define NPOINT 100 //Curve
 #define MSELECT 0
 #define MLINE 1
 #define MCIRCLE 2
@@ -32,21 +35,30 @@
 int MaxX, MaxY;              /* The maximum resolution of the screen */
 int xc, yc;
 int selectedmenu;
-int nL=0;
-int nPol=0;
 int mx[3],my[3];
 int PCOLOR = 0;
 
 int spixel[640][480];
 
 // for line
+int nL=0;
 int isClicked = 0;
 int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE], cl[NLINE];
 
+//CLIPPING
+int xclipa, yclipa, xclipb, yclipb, cclip;
+int PCURRENT = 0;
+GWindow clipWindow = makeWindow(-1,-1,0,0);
 
 // polygon
+int nPol=0;
 int xPolA[NLINE], yPolA[NLINE], xPolB[NLINE], yPolB[NLINE], clPol[NLINE];
 int xPolTemp, yPolTemp;
+
+//curve
+int nCurve = 0; 
+int nPoint = 0;
+int xCurve[NPOINT][NCURVE], yCurve[NPOINT][NCURVE], colorCurve[NCURVE];
 
 void clear() {
 	int i,j;
@@ -76,6 +88,19 @@ void clearscreen() {
 		for (i=0 ; i<MaxX ; i++) {
 			if(getpixel(i,j)!=BGCOLOR){
 				putpixel(i,j,BGCOLOR);
+			}
+		}
+	}
+}
+//CLIPPING
+void clip() {
+	int i,j;
+	for (j=MaxY/6+1 ; j<MaxY ; j++) {
+		for (i=0 ; i<MaxX ; i++) {
+			if((i<clipWindow.offsetX)||(j<clipWindow.offsetY)||(i>clipWindow.offsetX+clipWindow.width)||(j>clipWindow.offsetY+clipWindow.height)){
+				if(getpixel(i,j)!=BGCOLOR){
+					putpixel(i,j,BGCOLOR);
+				}
 			}
 		}
 	}
@@ -126,20 +151,55 @@ void drawAll(){
 	setactivepage(temp);
 }
 
+int length(int arr[]) { // get effective length 
+	int i=0;
+	while(arr[i]!=(-1)) {
+		i++;
+	}
+	return i;
+}
+
 void initLine() {
 	int i,j;
-	for (i=0 ; i< NLINE ; i++) {
+	for (i=0 ; i< NLINE ; i++) { // Line
 		xa[i] = -1;
 		ya[i] = -1;
 		xb[i] = -1;
 		yb[i] = -1;
 	}
+<<<<<<< HEAD
 	for (i=0 ; i< NLINE ; i++) {
 		xPolA[i] = -1;
 		yPolA[i] = -1;
 		xPolB[i] = -1;
 		yPolB[i] = -1;
+=======
+	for (j=0 ; j<MaxY ; j++) {  
+		for (i=0 ; i<MaxX ; i++) {
+			spixel[i][j] = 15;
+		}
+		for (i=0 ; i< NLINE ; i++) {
+			xPolA[i] = -1;
+			yPolA[i] = -1;
+			xPolB[i] = -1;
+			yPolB[i] = -1;
+		}
+>>>>>>> 260aa8579b590d5beaa51c247507fc546842bdc5
 	}
+	for (i=0; i<NCURVE;i++) { // Curve
+		for (j=0;j<NPOINT;j++) {
+			xCurve[i][j]=-1; 
+			yCurve[i][j]=-1;
+			//printf("%d,%d\n", xCurve[i][j], yCurve[i][j]);
+		}
+	}
+}
+//CLIPPING
+void initGWindow(){
+	xclipa = -1;
+	yclipa = -1;
+	xclipb = -1;
+	yclipb = -1;
 }
 
 void drawMenuBar() {
@@ -158,8 +218,13 @@ void drawMenuBar() {
 	outtextxy(MaxX/NBAR*MCURVE+17,MaxY/12-8,"CURVE");
 	outtextxy(MaxX/NBAR*MCLIP+8,MaxY/12-8,"CLIPPING");
 	outtextxy(MaxX/NBAR*MANTI+11,MaxY/12-8,"ANTICLIP");
+	 
 	
-	
+}
+//CLIPPING
+void translasi(int *x, int *y, int transX, int transY){
+	*x += transX;
+	*y += transY;
 }
 
 void colorMenuBar() {
@@ -173,8 +238,16 @@ void colorMenuBar() {
 			floodFill(selectedmenu*MaxX/NBAR+2,2, HLCOLOR, BGCOLOR);
 	}
 	
-	clearscreen(65,MaxY/6 + 10 , 165 , MaxY/6 + 30);
+	clearscreen(65,MaxY/6 + 10 , 480 , MaxY/6 + 30);
 	outtextxy(20,MaxY/6 + 10, "Color : ");
+	switch(selectedmenu){
+		case MLINE : outtextxy(300,MaxY/6 + 10, "LIN "); break;
+		case MCIRCLE : outtextxy(300,MaxY/6 + 10, "CIR "); break;
+		case MPOLYGON : outtextxy(300,MaxY/6 + 10, "POL "); break;
+		case MCURVE : outtextxy(300,MaxY/6 + 10, "CUR "); break;
+	}
+	char str[4];
+	outtextxy(400,MaxY/6 + 10, itoa(PCURRENT, str, 4));
 	switch(PCOLOR) {
 	case 0 :
 		outtextxy(65,MaxY/6 + 10, "Black"); break;
@@ -213,18 +286,12 @@ void colorMenuBar() {
 
 void setmenu(int x) {
 	selectedmenu = x * NBAR / MaxX;
+	PCURRENT = 0;
 }
 
 void drawmenu(int x, int y) {
 	//clearscreen();
 	switch(selectedmenu) {
-	/*case MSELECT :	// Menu Select, used Curve
-		if (isClicked==1) {
-			isClicked = 0;
-		} else {
-			isClicked = 1;
-		}
-		break;*/
 	case MLINE :	// Menu Line
 		if (isClicked==0) {
 			nL++;
@@ -252,8 +319,8 @@ void drawmenu(int x, int y) {
 		break;
 	case MAREA : // Menu AreaFill
 		int tempc;
-		int temp;
 		tempc = getpixel(x,y);
+		int temp;
 		temp = getactivepage();
 		if (tempc != PCOLOR) {
 			setactivepage(1);
@@ -263,19 +330,42 @@ void drawmenu(int x, int y) {
 			setactivepage(temp);
 		}
 		break;
-	case MCURVE : // Menu Curve
+	//CLIPPING
+	case MCLIP :	// Menu Clip
 		if (isClicked==0) {
-			nC++; nP++;
-			xca[nP-1][nC-1]=x; yca[nP-1][nC-1]=y;
-			cc[nC-1] = PCOLOR;
+			if(clipWindow.offsetX!=-1){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawWindow(clipWindow, BGCOLOR);
+				setactivepage(2);
+				drawWindow(clipWindow, BGCOLOR);
+				setactivepage(temp);
+			}
+			xclipa=x; yclipa=y;
+			xclipb=-1; yclipb=-1;
+			cclip = BLACK;
 			isClicked = 1;
 		} else {
-			nP++;
-			xcb[nP-1][nC-1]=x; ycb[nP-1][nC-1]=y;
-			int key = getch();
-			if(key=65) {
-				isClicked=0;	
-			}
+			xclipb=x; yclipb=y;
+			//xclipa=-1; yclipa=-1;
+			isClicked = 0;
+			int temp = getactivepage();
+			setactivepage(1);
+			clip();
+			setactivepage(2);
+			clip();
+			setactivepage(temp);
+		}
+		break;	
+	case MCURVE : // Menu Curve
+		if (isClicked==0) {
+			nCurve++; nPoint=1;
+			xCurve[nCurve-1][nPoint-1]=x; yCurve[nCurve-1][nPoint-1]=y;
+			colorCurve[nCurve-1] = PCOLOR;
+			isClicked = 1;
+		} else {
+			nPoint++;
+			xCurve[nCurve-1][nPoint-1]=x; yCurve[nCurve-1][nPoint-1]=y;
 		}
 		break;
 	case MPOLYGON : // Menu Polygon
@@ -328,6 +418,221 @@ void render() {
 				if (PCOLOR == -1) PCOLOR = 15;
 			} else if (key == 77) { // Panah kanan
 				PCOLOR = (PCOLOR+1) % 16;
+			}
+			if (key == 80) { // Panah bawah
+				int MAXN;
+				if(selectedmenu == MLINE) MAXN = nL;
+				else if(selectedmenu == MCIRCLE) MAXN = nE;
+				else if(selectedmenu == MPOLYGON) MAXN = nPol;
+				else if(selectedmenu == MCURVE) MAXN = nCurve;
+				else MAXN = 0;
+				PCURRENT--;
+				if (PCURRENT== -1) PCURRENT = MAXN;
+			} else if (key == 72) { // Panah atas
+				int MAXN;
+				if(selectedmenu == MLINE) MAXN = nL;
+				else if(selectedmenu == MCIRCLE) MAXN = nE;
+				else if(selectedmenu == MPOLYGON) MAXN = nPol;
+				else if(selectedmenu == MCURVE) MAXN = nCurve;
+				else MAXN = 0;
+				PCURRENT = (PCURRENT+1) % MAXN;
+			}
+		}
+		else if (key == 'w') {
+			if(selectedmenu == MLINE){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(temp);
+				translasi(&xa[PCURRENT], &ya[PCURRENT], 0, -20);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], 0, -20);
+				temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(temp);
+			}
+		}
+		else if (key == 's') {
+			if(selectedmenu == MLINE){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(temp);
+				translasi(&xa[PCURRENT], &ya[PCURRENT], 0, 20);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], 0, 20);
+				temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(temp);
+			}
+		}
+		else if (key == 'a') {
+			if(selectedmenu == MLINE){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(temp);
+				translasi(&xa[PCURRENT], &ya[PCURRENT], -20, 0);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], -20, 0);
+				temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(temp);
+			}
+		}
+		else if (key == 'd') {
+			if(selectedmenu == MLINE){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(temp);
+				translasi(&xa[PCURRENT], &ya[PCURRENT], 20, 0);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], 20, 0);
+				temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(temp);
+			}
+		}
+		
+		else if (key == 'l') {
+			if(selectedmenu == MLINE){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(temp);
+				float centerx = ((float)(xa[PCURRENT] + xb[PCURRENT]))/2;
+				float centery = ((float)(ya[PCURRENT] + yb[PCURRENT]))/2;
+				translasi(&xa[PCURRENT], &ya[PCURRENT], (-1)*centerx, (-1)*centery);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], (-1)*centerx, (-1)*centery);
+				MatrixTrans m = makeMatrixRotasi(10);
+				Point p1 = makePoint(xa[PCURRENT], ya[PCURRENT]);
+				Point p2 = makePoint(xb[PCURRENT], yb[PCURRENT]);
+				transform(&p1, m);
+				transform(&p2, m);
+				xa[PCURRENT] = p1.x;
+				ya[PCURRENT] = p1.y;
+				xb[PCURRENT] = p2.x;
+				yb[PCURRENT] = p2.y;
+				translasi(&xa[PCURRENT], &ya[PCURRENT], centerx, centery);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], centerx, centery);
+				temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(temp);
+			}
+		}
+		else if (key == 'r') {
+			if(selectedmenu == MLINE){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(temp);
+				float centerx = ((float)(xa[PCURRENT] + xb[PCURRENT]))/2;
+				float centery = ((float)(ya[PCURRENT] + yb[PCURRENT]))/2;
+				translasi(&xa[PCURRENT], &ya[PCURRENT], (-1)*centerx, (-1)*centery);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], (-1)*centerx, (-1)*centery);
+				MatrixTrans m = makeMatrixRotasi(-10);
+				Point p1 = makePoint(xa[PCURRENT], ya[PCURRENT]);
+				Point p2 = makePoint(xb[PCURRENT], yb[PCURRENT]);
+				transform(&p1, m);
+				transform(&p2, m);
+				xa[PCURRENT] = p1.x;
+				ya[PCURRENT] = p1.y;
+				xb[PCURRENT] = p2.x;
+				yb[PCURRENT] = p2.y;
+				translasi(&xa[PCURRENT], &ya[PCURRENT], centerx, centery);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], centerx, centery);
+				temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(temp);
+			}
+		}
+		else if (key == '=') {
+			if(selectedmenu == MLINE){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(temp);
+				float centerx = ((float)(xa[PCURRENT] + xb[PCURRENT]))/2;
+				float centery = ((float)(ya[PCURRENT] + yb[PCURRENT]))/2;
+				translasi(&xa[PCURRENT], &ya[PCURRENT], (-1)*centerx, (-1)*centery);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], (-1)*centerx, (-1)*centery);
+				MatrixTrans m = makeMatrixScale(2, 2);
+				Point p1 = makePoint(xa[PCURRENT], ya[PCURRENT]);
+				Point p2 = makePoint(xb[PCURRENT], yb[PCURRENT]);
+				transform(&p1, m);
+				transform(&p2, m);
+				xa[PCURRENT] = p1.x;
+				ya[PCURRENT] = p1.y;
+				xb[PCURRENT] = p2.x;
+				yb[PCURRENT] = p2.y;
+				translasi(&xa[PCURRENT], &ya[PCURRENT], centerx, centery);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], centerx, centery);
+				temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(temp);
+			}
+		}
+		else if (key == '-') {
+			if(selectedmenu == MLINE){
+				int temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], BGCOLOR);
+				setactivepage(temp);
+				float centerx = ((float)(xa[PCURRENT] + xb[PCURRENT]))/2;
+				float centery = ((float)(ya[PCURRENT] + yb[PCURRENT]))/2;
+				translasi(&xa[PCURRENT], &ya[PCURRENT], (-1)*centerx, (-1)*centery);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], (-1)*centerx, (-1)*centery);
+				MatrixTrans m = makeMatrixScale(0.5, 0.5);
+				Point p1 = makePoint(xa[PCURRENT], ya[PCURRENT]);
+				Point p2 = makePoint(xb[PCURRENT], yb[PCURRENT]);
+				transform(&p1, m);
+				transform(&p2, m);
+				xa[PCURRENT] = p1.x;
+				ya[PCURRENT] = p1.y;
+				xb[PCURRENT] = p2.x;
+				yb[PCURRENT] = p2.y;
+				translasi(&xa[PCURRENT], &ya[PCURRENT], centerx, centery);
+				translasi(&xb[PCURRENT], &yb[PCURRENT], centerx, centery);
+				temp = getactivepage();
+				setactivepage(1);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(2);
+				drawLineBresenham(xa[PCURRENT], ya[PCURRENT], xb[PCURRENT], yb[PCURRENT], PCOLOR);
+				setactivepage(temp);
 			}
 		}
 	}
@@ -392,32 +697,68 @@ void render() {
 		}
 	}
 
-	//CURVE
-	else if (isClicked == 1 && selectedmenu == MCURVE) { 
-		int i;
-		for (i=0; i<nC ; i++) {
-		/*
-			if (xcb == 0) {
-				if (my[getactivepage()] > MaxY/6 +1)
-					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,BGCOLOR);
-				else 
-					drawing_ellipse(xea,yea, mx[getactivepage()], MaxY/6 +1,i,BGCOLOR);
+	//CLIPPING
+	else if (isClicked == 1 && selectedmenu == MCLIP) {
+		int i,xmin=MaxX,ymin=MaxY,xmax=0,ymax=0;
+		if (xclipb == -1) {
+			if (my[getactivepage()] > MaxY/6 +1){
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, my[getactivepage()]-yclipa);
+				drawWindow(clipWindow, BGCOLOR);
 			}
-			else {
-				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
-			}*/
+			else{
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, (MaxY/6 +1)-yclipa);
+				drawWindow(clipWindow, BGCOLOR);
+			}
+		}
+		else {
+			clipWindow = makeWindow(xclipa,yclipa, xclipb-xclipa, yclipb-yclipa);
+			drawWindow(clipWindow, BGCOLOR);
 		}
 		mx[getactivepage()] = mousex(); my[getactivepage()] = mousey();
-		for (i=0; i<nC ; i++) {/*
-			if (xcb == 0) {
-				if (my[getactivepage()] > MaxY/6 +1)
-					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,PCOLOR);
-				else 
-					drawing_ellipse(xea,yea, mx[getactivepage()], MaxY/6 +1,i,PCOLOR);
+		if (xclipb == -1) {
+			if (my[getactivepage()] > MaxY/6 +1){
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, my[getactivepage()]-yclipa);
+				drawWindow(clipWindow, cclip);
 			}
-			else {
-				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],PCOLOR);
-			}*/
+			else{ 
+				clipWindow = makeWindow(xclipa,yclipa, mx[getactivepage()]-xclipa, (MaxY/6 +1)-yclipa);
+				drawWindow(clipWindow, cclip);
+			}
+		}
+		else {
+			clipWindow = makeWindow(xclipa,yclipa, xclipb-xclipa, yclipb-yclipa);
+			drawWindow(clipWindow, BGCOLOR);
+		}
+	}
+
+	//CURVE
+	else if (isClicked == 1 && selectedmenu == MCURVE) { 
+		int key = kbhit();
+		if (key!=0) {
+			isClicked=0;
+		}
+
+		int i;
+		for (i=0; i<nCurve; i++) {
+			//for(j=0; j<length(xCurve[i]); j++) {
+			//	printf("Curve %d Point %d: (%d,%d)\n", i, j, xCurve[j][i], yCurve[j][i]);
+			//}
+			int nPointEff;
+			nPointEff = length(xCurve[i]);	
+			bezier(xCurve[i], yCurve[i], nPointEff, PCOLOR);
+
+			// mekanisme clear bezier sebelumnya
+			int nPointEffClr;
+			nPointEffClr = length(xCurve[i])-1; 
+			if(nPointEffClr>0) {
+				int xCurveClr[nPointEffClr]; int yCurveClr[nPointEffClr];
+				int j;
+				for (j=0; j<nPointEffClr; j++) {
+					xCurveClr[j] = xCurve[i][j]; yCurveClr[j] = yCurve[i][j];
+					//printf("Curve %d Point %d x = %d, y = %d\n", i, j, xCurveClr[j], yCurveClr[j]);
+				}
+				bezier(xCurveClr, yCurveClr, nPointEffClr, BGCOLOR);	
+			}
 		}
 	}
 
@@ -482,6 +823,8 @@ int main() {
 	MaxX = getmaxx();
 	MaxY = getmaxy();
 	initLine();
+	//CLIPPING
+	initGWindow();
 	initEllipse();
 	setbkcolor(BGCOLOR);
 	setcolor(FONTCOLOR);
@@ -511,4 +854,3 @@ int main() {
 	closegraph();
 	return 0;
 }
-

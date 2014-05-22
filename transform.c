@@ -11,6 +11,15 @@ typedef struct {
 	int mul;
 } Point;
 
+/*int round(double f){
+	double temp = f;
+	while (temp > 1){
+		temp -= 1;
+	}
+	if (temp >= 0.5) return ((int)f)+1;
+	else return (int)f;
+}*/
+
 Point makePoint(int x, int y){
 	Point p;
 	p.x = x;
@@ -61,7 +70,7 @@ MatrixTrans makeMatrixScale(double sx, double sy){
 	return m;
 }
 
-MatrixTrans makeMatrixShear(int shx, int shy){
+MatrixTrans makeMatrixShear(double shx, double shy){
 	MatrixTrans m;
 	m.tabel[0][0] = 1;
 	m.tabel[0][1] = shx;
@@ -114,9 +123,9 @@ void printMatrix(MatrixTrans m){
 /*void Translasi(Point p, MatrixTrans){
 	p.x += transX;
 	p.y += transY;
-}
+}*/
 
-int main(){
+/*int main(){
 	int x, y, a, b;
 	int command;
 	printf("masukkan Point (x <spasi> y) : " );
