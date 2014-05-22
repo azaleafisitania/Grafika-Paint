@@ -57,11 +57,11 @@ void bezier (int x[], int y[], int n, int color)
 		//cout << xt<< " ";
 		double yt = Bezier(n, y, t);
  
-		putpixel(originX((int) xt), originY((int) yt), color);
+		putpixel((int) xt, (int) yt, color);
     }
  
     for (i=0; i<n; i++)
-	putpixel (originX(x[i]), originY(y[i]), color);
+	putpixel (x[i],y[i], color);
 	
     return;
 }

@@ -129,23 +129,39 @@ void drawAll(){
 	}
 }
 
+int length(int arr[]) { // get effective length 
+	int i=0;
+	while(arr[i]!=(-1)) {
+		i++;
+	}
+	return i;
+}
+
 void initLine() {
 	int i,j;
-	for (i=0 ; i< NLINE ; i++) {
+	for (i=0 ; i< NLINE ; i++) { // Line
 		xa[i] = -1;
 		ya[i] = -1;
 		xb[i] = -1;
 		yb[i] = -1;
 	}
-	for (j=0 ; j<MaxY ; j++) {
+	for (j=0 ; j<MaxY ; j++) {  
 		for (i=0 ; i<MaxX ; i++) {
 			spixel[i][j] = 15;
 		}
-	for (i=0 ; i< NLINE ; i++) {
-		xPolA[i] = -1;
-		yPolA[i] = -1;
-		xPolB[i] = -1;
-		yPolB[i] = -1;
+		for (i=0 ; i< NLINE ; i++) {
+			xPolA[i] = -1;
+			yPolA[i] = -1;
+			xPolB[i] = -1;
+			yPolB[i] = -1;
+		}
+	}
+	for (i=0; i<NCURVE;i++) { // Curve
+		for (j=0;j<NPOINT;j++) {
+			xCurve[i][j]=-1; 
+			yCurve[i][j]=-1;
+			//printf("%d,%d\n", xCurve[i][j], yCurve[i][j]);
+		}
 	}
 }
 
@@ -225,13 +241,6 @@ void setmenu(int x) {
 void drawmenu(int x, int y) {
 	//clearscreen();
 	switch(selectedmenu) {
-	/*case MSELECT :	// Menu Select, used Curve
-		if (isClicked==1) {
-			isClicked = 0;
-		} else {
-			isClicked = 1;
-		}
-		break;*/
 	case MLINE :	// Menu Line
 		if (isClicked==0) {
 			nL++;
@@ -272,12 +281,12 @@ void drawmenu(int x, int y) {
 	case MCURVE : // Menu Curve
 		if (isClicked==0) {
 			nCurve++; nPoint=1;
-			xCurve[nPoint-1][nCurve-1]=x; yCurve[nPoint-1][nCurve-1]=y;
+			xCurve[nCurve-1][nPoint-1]=x; yCurve[nCurve-1][nPoint-1]=y;
 			colorCurve[nCurve-1] = PCOLOR;
 			isClicked = 1;
 		} else {
 			nPoint++;
-			xCurve[nPoint-1][nCurve-1]=x; yCurve[nPoint-1][nCurve-1]=y;
+			xCurve[nCurve-1][nPoint-1]=x; yCurve[nCurve-1][nPoint-1]=y;
 		}
 		break;
 	case MPOLYGON : // Menu Polygon
@@ -414,39 +423,32 @@ void render() {
 
 	//CURVE
 	else if (isClicked == 1 && selectedmenu == MCURVE) { 
-		int i, j;
-		for (i=0; i<nCurve; i++) {
-			for(j=0; j<nPoint; j++) {
-				printf("Curve %d Point %d: (%d,%d)\n", i, j, xCurve[j][i], yCurve[j][i]);	
-			}
-			
-		/*
-			if (xcb == 0) {
-				if (my[getactivepage()] > MaxY/6 +1)
-					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,BGCOLOR);
-				else 
-					drawing_ellipse(xea,yea, mx[getactivepage()], MaxY/6 +1,i,BGCOLOR);
-			}
-			else {
-				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],BGCOLOR);
-			}*/
+		int key = kbhit();
+		if (key!=0) {
+			isClicked=0;
 		}
-		
-			int key = kbhit();
-			if (key!=0) {
-				isClicked=0;
+
+		int i;
+		for (i=0; i<nCurve; i++) {
+			//for(j=0; j<length(xCurve[i]); j++) {
+			//	printf("Curve %d Point %d: (%d,%d)\n", i, j, xCurve[j][i], yCurve[j][i]);
+			//}
+			int nPointEff;
+			nPointEff = length(xCurve[i]);	
+			bezier(xCurve[i], yCurve[i], nPointEff, PCOLOR);
+
+			// mekanisme clear bezier sebelumnya
+			int nPointEffClr;
+			nPointEffClr = length(xCurve[i])-1; 
+			if(nPointEffClr>0) {
+				int xCurveClr[nPointEffClr]; int yCurveClr[nPointEffClr];
+				int j;
+				for (j=0; j<nPointEffClr; j++) {
+					xCurveClr[j] = xCurve[i][j]; yCurveClr[j] = yCurve[i][j];
+					//printf("Curve %d Point %d x = %d, y = %d\n", i, j, xCurveClr[j], yCurveClr[j]);
+				}
+				bezier(xCurveClr, yCurveClr, nPointEffClr, BGCOLOR);	
 			}
-		mx[getactivepage()] = mousex(); my[getactivepage()] = mousey();
-		for (i=0; i<nCurve ; i++) {/*
-			if (xcb == 0) {
-				if (my[getactivepage()] > MaxY/6 +1)
-					drawing_ellipse(xea,yea, mx[getactivepage()], my[getactivepage()],i,PCOLOR);
-				else 
-					drawing_ellipse(xea,yea, mx[getactivepage()], MaxY/6 +1,i,PCOLOR);
-			}
-			else {
-				ellipseMidpoint(cx[i],cy[i],radx[i],rady[i],PCOLOR);
-			}*/
 		}
 	}
 
