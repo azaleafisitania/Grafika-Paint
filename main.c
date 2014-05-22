@@ -3,11 +3,8 @@
 #include "line-bresenham.c"
 #include "areafill.c"
 #include "drawellipse.c"
-<<<<<<< HEAD
 #include "clipping.c"
-=======
 #include "bezier.c"
->>>>>>> ae8d516a268521dc487cba645d5349154399c835
 #include <stdio.h>
 
 #define MBCOLOR LIGHTBLUE
@@ -47,11 +44,10 @@ int spixel[640][480];
 int nL=0;
 int isClicked = 0;
 int xa[NLINE],ya[NLINE],xb[NLINE],yb[NLINE], cl[NLINE];
-<<<<<<< HEAD
+
 //CLIPPING
 int xclipa, yclipa, xclipb, yclipb, cclip;
 GWindow clipWindow = makeWindow(-1,-1,0,0);
-=======
 
 // polygon
 int nPol=0;
@@ -63,8 +59,6 @@ int nCurve = 0;
 int nPoint = 0;
 int xCurve[NPOINT][NCURVE], yCurve[NPOINT][NCURVE], colorCurve[NCURVE];
 
-
->>>>>>> ae8d516a268521dc487cba645d5349154399c835
 void clear() {
 	int i,j;
 	for (j=0 ; j<MaxY ; j++) {
@@ -306,13 +300,8 @@ void drawmenu(int x, int y) {
 		break;
 	case MAREA : // Menu AreaFill
 		int tempc;
-<<<<<<< HEAD
 		tempc = getpixel(x,y);
 		int temp;
-=======
-		int temp;
-		tempc = getpixel(x,y);
->>>>>>> ae8d516a268521dc487cba645d5349154399c835
 		temp = getactivepage();
 		if (tempc != PCOLOR) {
 			setactivepage(1);
@@ -322,7 +311,6 @@ void drawmenu(int x, int y) {
 			setactivepage(temp);
 		}
 		break;
-<<<<<<< HEAD
 	//CLIPPING
 	case MCLIP :	// Menu Clip
 		if (isClicked==0) {
@@ -344,7 +332,6 @@ void drawmenu(int x, int y) {
 			isClicked = 0;
 		}
 		break;	
-=======
 	case MCURVE : // Menu Curve
 		if (isClicked==0) {
 			nCurve++; nPoint=1;
@@ -379,7 +366,6 @@ void drawmenu(int x, int y) {
 			}
 		}
 		break;
->>>>>>> ae8d516a268521dc487cba645d5349154399c835
 	}
 }
 
@@ -548,7 +534,7 @@ void render() {
 			}
 		}
 	}
-<<<<<<< HEAD
+
 	//CLIPPING
 	else if (isClicked == 1 && selectedmenu == MCLIP) {
 		int i,xmin=MaxX,ymin=MaxY,xmax=0,ymax=0;
@@ -582,7 +568,6 @@ void render() {
 			drawWindow(clipWindow, BGCOLOR);
 		}
 	}
-=======
 
 	//CURVE
 	else if (isClicked == 1 && selectedmenu == MCURVE) { 
@@ -664,7 +649,6 @@ void render() {
 			// drawLineBresenham(xa[i],ya[i], xb[i], yb[i],LINECOLOR);
 		// }
 	// }
->>>>>>> ae8d516a268521dc487cba645d5349154399c835
 }
 
 int main() {
