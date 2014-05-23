@@ -58,7 +58,7 @@ int xPolTemp, yPolTemp;
 //curve
 int nCurve = 0; 
 int nPoint = 0;
-int xCurve[NPOINT][NCURVE], yCurve[NPOINT][NCURVE], colorCurve[NCURVE];
+int xCurve[NCURVE][NPOINT], yCurve[NCURVE][NPOINT], colorCurve[NCURVE];
 
 void clear() {
 	int i,j;
